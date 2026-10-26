@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  h1= title
+  div(id="form")
+    form(action="",method="get")
+      input(type="hidden",name="ID",value=`${formdata.ID}`)
+      input(type="hidden",name="role",value="Faculty")
+      input(type="submit")
+
+  if formdata.role
+    table
+      caption
+        h2 Form data
+      tr
+        th Key
+        th Value
+      each value, key in formdata
+        tr
+          td= key
+          td= value
+  else
+    h2 No form data

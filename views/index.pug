@@ -3,3 +3,51 @@ extends layout
 block content
   h1= title
   p Welcome to #{title}
+  div(id="form")
+    form(action="",method="get")
+      if formdata.ID
+        input(type="hidden",name="ID",value="${formdata.ID}")
+      else
+        div(class="form_control")
+          label(class="left",for="ID") ID: 
+          input(type="text",name="ID",id="ID")
+
+      if formdata.role
+        input(type="hidden",name="ID",value="${formdata.role}")
+      else
+        div(class="form_control")
+          label(class="left",for="role") Role:
+          select.dropdown(name="role",id="role",required)
+            option(value="") Please select a role
+            option Student
+            option Faculty
+          output(class="flag")
+      input(type="submit")
+
+  if formdata.role
+    table
+      caption
+        h2 Form data
+      tr
+        th Key
+        th Value
+      each value, key in formdata
+        tr
+          td= key
+          td= value
+  else
+    h2 No form data
+
+  //- table
+  //-   caption
+  //-     h2 Form data
+  //-   tr
+  //-     th Key
+  //-     th Value
+  //-   tr
+  //-     td Funny
+  //-     td Number
+  //-   each value, key in {"Class 1": "Math", "Class 2": "DBD"}
+  //-     tr
+  //-       td= key
+  //-       td= value

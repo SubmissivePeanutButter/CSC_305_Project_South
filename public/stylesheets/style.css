@@ -6,3 +6,18 @@ body {
 a {
   color: #00B7FF;
 }
+
+.form_control {
+  padding: 0 0.1em 1ex;
+}
+
+label.left {
+  padding: 0 0.5em 0 0;
+}
+
+.dropdown {
+  padding: 3px;
+  padding-inline-end: 20px;
+}
+
+/* Mark required, valid, and invalid form elements */
