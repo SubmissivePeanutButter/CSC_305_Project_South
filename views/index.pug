@@ -21,6 +21,7 @@ block content
             option(value="") Please select a role
             option Student
             option Faculty
+            option Registrar
           output(class="flag")
       input(type="submit")
 
@@ -37,17 +38,3 @@ block content
           td= value
   else
     h2 No form data
-
-  //- table
-  //-   caption
-  //-     h2 Form data
-  //-   tr
-  //-     th Key
-  //-     th Value
-  //-   tr
-  //-     td Funny
-  //-     td Number
-  //-   each value, key in {"Class 1": "Math", "Class 2": "DBD"}
-  //-     tr
-  //-       td= key
-  //-       td= value
