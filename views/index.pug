@@ -10,7 +10,7 @@ block content
       else
         div(class="form_control")
           label(class="left",for="ID") ID: 
-          input(type="text",name="ID",id="ID")
+          input(type="text",name="ID",id="ID",required)
 
       if formdata.role
         input(type="hidden",name="ID",value="${formdata.role}")
