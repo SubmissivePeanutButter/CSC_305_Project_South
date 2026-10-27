@@ -7,13 +7,23 @@
 var app = require('../app');
 var debug = require('debug')('project:server');
 var http = require('http');
-
+const path = require('path');
+const pubpath = path.resolve(__dirname, '..', 'public');
+const dbconnect = require(path.resolve(pubpath, 'javascripts', 'dbconnect.js'));
 /**
  * Get port from environment and store in Express.
  */
 
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
+
+
+/**
+ * Connect to database and attach it to app.locals
+ */
+const dbname = path.resolve(pubpath, 'grasshopper-air-2026.sqlite')
+console.log(dbname)
+app.locals.db = dbconnect.dbopen(dbname);
 
 /**
  * Create HTTP server.
@@ -88,3 +98,37 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+/**
+ * Function for graceful (as much as possible!) shutdown.  The key element here
+ * is that the database gets closed if it was open.
+ */
+function gracefulShutdown(signal) {
+  if (signal) {
+      console.log(`Received ${signal}, shutting down (somewhat) gracefully.`);
+  }
+  else {
+      console.log('Shutting down, no signal.');
+  }
+
+  server.close(() => {
+      console.log('Http server closed.');
+      if (app.locals.db) {
+          dbconnect.dbclose(app.locals.db, () => { 
+              console.log('Exiting after closing database.');
+              process.exit(0); 
+          });
+      }
+      else {
+          console.log('Exiting, no database to close.')
+          process.exit(0);
+      }
+  });
+}
+
+/**
+* Attach gracefulShutdown() to the two most common ways of shutting down.
+*/
+process.on('SIGTERM', gracefulShutdown);
+
+process.on('SIGINT', gracefulShutdown);
