@@ -24,7 +24,7 @@ app.set('port', port);
  */
 const dbname = path.resolve(pubpath, 'univdb.sqli');
 console.log(dbname);
-app.locals.db = dbopen(dbname);
+app.locals.db = dbconnect.dbopen(dbname);
 
 /**
  * Create HTTP server.
@@ -115,7 +115,7 @@ function gracefulShutdown(signal) {
   server.close(() => {
       console.log('Http server closed.');
       if (app.locals.db) {
-          dbclose(app.locals.db, () => { 
+          dbconnect.dbclose(app.locals.db, () => { 
               console.log('Exiting after closing database.');
               process.exit(0); 
           });
