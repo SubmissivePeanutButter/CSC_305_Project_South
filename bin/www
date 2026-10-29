@@ -10,6 +10,7 @@ var http = require('http');
 const path = require('path');
 const pubpath = path.resolve(__dirname, '..', 'public');
 const dbconnect = require(path.resolve(pubpath, 'javascripts', 'dbconnect.js'));
+
 /**
  * Get port from environment and store in Express.
  */
@@ -21,9 +22,9 @@ app.set('port', port);
 /**
  * Connect to database and attach it to app.locals
  */
-const dbname = path.resolve(pubpath, 'grasshopper-air-2026.sqlite')
-console.log(dbname)
-app.locals.db = dbconnect.dbopen(dbname);
+const dbname = path.resolve(pubpath, 'univdb.sqli');
+console.log(dbname);
+app.locals.db = dbopen(dbname);
 
 /**
  * Create HTTP server.
@@ -114,7 +115,7 @@ function gracefulShutdown(signal) {
   server.close(() => {
       console.log('Http server closed.');
       if (app.locals.db) {
-          dbconnect.dbclose(app.locals.db, () => { 
+          dbclose(app.locals.db, () => { 
               console.log('Exiting after closing database.');
               process.exit(0); 
           });
