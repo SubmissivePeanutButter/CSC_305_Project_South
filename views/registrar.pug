@@ -6,8 +6,9 @@ block content
     form(action="",method="get")
       input(type="hidden",name="ID",value=`${formdata.ID}`)
       input(type="hidden",name="role",value="Registrar")
-      input(type="submit")
-
+      //input(type="submit")
+  a(href="/") Back
+  
   if formdata.role
     table
       caption
