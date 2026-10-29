@@ -24,7 +24,7 @@ app.set('port', port);
  */
 const dbname = path.resolve(pubpath, 'univdb.sqli');
 console.log(dbname);
-app.locals.db = dbopen(dbname);
+app.locals.db = dbconnect.dbopen(dbname);
 
 /**
  * Create HTTP server.

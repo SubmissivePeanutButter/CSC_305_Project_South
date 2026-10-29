@@ -1,5 +1,4 @@
 const { DatabaseSync } = require('node:sqlite'); //.verbose();
-// const db = new Database('public/univdb.sqli');
 
 const dbopen = (dbpath) => {
   const db = new DatabaseSync(dbpath);
