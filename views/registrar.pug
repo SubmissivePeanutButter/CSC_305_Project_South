@@ -4,23 +4,39 @@ block content
   // TODO: Display offerings scheduled for Winter 2026; allow new offerings to be
   //    added, as well as for currently scheduled offerings to be canceled
   h1= title
-  div(id="form")
-    form(action="",method="get")
-      input(type="hidden",name="ID",value=`${formdata.ID}`)
-      input(type="hidden",name="role",value="Registrar")
-      //input(type="submit")
-  a(href="/") Back
-  
-  if formdata.role
-    table
-      caption
-        h2 Form data
-      tr
-        th Key
-        th Value
-      each value, key in formdata
+
+  if offerings
+    if offerings.length > 0
+      table
+        caption
+          h2 Winter 2026 Offerings
         tr
-          td= key
-          td= value
-  else
-    h2 No form data
+          each col in Object.keys(offerings[0])
+            th= col
+        each row in offerings
+          tr
+            each val in row
+              td= val
+            td
+              form(action="",method="get")
+                input(type="hidden",name="action",value="cancel_ticket")
+                input(type="hidden",name="ID",value=`${formdata.ID}`)
+                input(type="hidden",name="role",value=`${formdata.role}`)
+                input(type="hidden",name="offerings",value=`${row['Flight']}`)
+                //- input(type="hidden",name="role",value="Registrar")
+                //input(type="submit")
+            a(href="/") Back
+  
+  //- if formdata.role
+  //-   table
+  //-     caption
+  //-       h2 Form data
+  //-     tr
+  //-       th Key
+  //-       th Value
+  //-     each value, key in formdata
+  //-       tr
+  //-         td= key
+  //-         td= value
+  //- else
+  //-   h2 No form data
