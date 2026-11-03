@@ -77,7 +77,8 @@ function queryStudent(formdata, req, res, next) {
                 + " Offering.OfferNo IN (SELECT OfferNo FROM Enrollment WHERE StdSSN = $SSN) AS Enrolled"
                 + " FROM Offering LEFT JOIN Faculty ON"
                 + " Offering.FacSSN = Faculty.FacSSN WHERE OffTerm = 'WINTER' and"
-                + " OffYear = 2026;";
+                + " OffYear = 2026"
+                + " Group BY Offering.OfferNo;";
     req.app.locals.offerings = db.prepare(sql2).all({ $SSN: formdata.ID });
     console.info(req.app.locals.past_enrollments.length, "offerings found", );
   }
