@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
 /* POST home page */
 router.post('/', function(req, res, next) {
   console.info('POST Formdata:', req.body);
-  makePage(req.body, res, next);
+  makePage(req.body, req, res, next);
 });
 
 function makePage(formdata, req, res, next) {
@@ -56,6 +56,7 @@ function queryDatabase(formdata, req, res, next) {
 function queryStudent(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
+    req.app.locals.invalid_student = !db.prepare("SELECT 1 FROM Student WHERE StdSSN = $SSN;").get({ $SSN: formdata.ID });
     const sql = "SELECT Offering.CourseNo, Offering.OffTerm, Offering.OffYear, Faculty.FacFirstName, Faculty.FacLastName, Enrollment.EnrGrade"
                 + " FROM (Offering INNER JOIN Enrollment ON"
                 + " Offering.OfferNO = Enrollment.OfferNO) LEFT JOIN Faculty ON" 
@@ -63,12 +64,13 @@ function queryStudent(formdata, req, res, next) {
                 + " WHERE Enrollment.StdSSN = $SSN AND (Offering.OffYear <> 2026 OR Offering.OffTerm <> 'WINTER');";
     req.app.locals.past_enrollments = db.prepare(sql).all({ $SSN: formdata.ID });
     //this mess shows unique offer numbers while still giving the enrollment datato tell if a user is enrolled or not i hope :(
-    const sql2 = "SELECT CourseNo, FacFirstName, FacLastName, OffLocation"
-                + " OffTime, OffDays FROM (Offering LEFT JOIN Enrollment ON Offering.OfferNO = Enrollment.OfferNO) LEFT JOIN Faculty ON"
+    const sql2 = "SELECT Offering.OfferNo, CourseNo, FacFirstName, FacLastName, OffLocation,"
+                + " OffTime, OffDays,"
+                + " Offering.OfferNo IN (SELECT OfferNo FROM Enrollment WHERE StdSSN = $SSN) AS Enrolled"
+                + " FROM Offering LEFT JOIN Faculty ON"
                 + " Offering.FacSSN = Faculty.FacSSN WHERE OffTerm = 'WINTER' and"
-                + " OffYear = 2026"
-                + " Group BY Offering.OfferNo;";
-    req.app.locals.offerings = db.prepare(sql2).all();
+                + " OffYear = 2026;";
+    req.app.locals.offerings = db.prepare(sql2).all({ $SSN: formdata.ID });
     console.info(req.app.locals.past_enrollments.length, "offerings found", );
   }
   else {

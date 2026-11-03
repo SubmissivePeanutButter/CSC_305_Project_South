@@ -11,6 +11,8 @@ block content
       input(type="hidden",name="role",value="Student")
       //input(type="submit")
   a(href="/") Back
+  if invalid_student
+    h2 No student found with ID #{formdata.ID}
   if past_enrollments
     if past_enrollments.length > 0
       table
