@@ -37,63 +37,21 @@ function makePage(formdata, req, res, next) {
   }
 }
 
-function performActions(formdata, req) {
-  if (formdata.action) {
-    switch(formdata.action) {
-      case "cancel_ticket":
-        cancelTicket(formdata.ticket_ID, req.app.locals.db);
-        break;
-      case "book_flight":
-        bookFlight(formdata, req);
-        break;
-    }
-  }
-}
-
-function cancelTicket(ticket_ID, db) {
-  const sql = 'delete from Ticket where TktNum = $tktnum;';
-  const changes = db.prepare(sql).run({ $tktnum: ticket_ID });
-  console.info(`Canceling ticket changed ${changes.changes} row(s)`);
-}
-
-function bookFlight(formdata, req) {
-  const db = req.app.locals.db;
-  const sql = 'insert into Ticket (PsgrID, FltNum, FltDate)'
-              + ' values ($id, $fltnum, $fltdate);';
-  const changes = db.prepare(sql).run({ $id: formdata.ID, 
-                                        $fltnum: formdata.FltNum, 
-                                        $fltdate: formdata.FltDate });
-  console.info(`Booking flight changed ${changes.changes} row(s)`)
-}
-
 function queryDatabase(formdata, req, res, next) {
   if (formdata.role) {
-    // if (formdata.role === "Passenger" || formdata.role === "Scheduler") {
-    if (formdata.role === "Student" || formdata.role === "Faculty" || formdata.role === "Registrar") {
+    if (formdata.role === "Student") {
+      // Do something
+    }
+    else if (formdata.role === "Faculty") {
+      queryInstructorCourses(formdata, req, res, next);
+    }
+    else if (formdata.role === "Registrar") {
       queryOfferings(formdata, req, res, next);
-      // queryFlights(formdata, req, res, next);
     }
     else {
       throw new Error(`400 Unknown role: ${formdata.role}`);
     }
   }  // No role, no query
-}
-
-function queryFlights(formdata, req, res, next) {
-  if (req.app.locals.db) {
-    const db = req.app.locals.db;
-    const sql = 'select FltNum as Flight, Origin, Dest, Departs, Arrives,'
-                  + ' ModelName as Aircraft'
-                  + ' from Flight natural join ACModel order by Departs;';
-    req.app.locals.flights = db.prepare(sql).all();
-    console.info(req.app.locals.flights.length, "flights found", );
-    if (formdata.role === "Passenger") {
-      queryPassengerName(formdata, req, res, next);
-    }
-  }
-  else {
-    throw new Error("500 Flights query failed to find database");
-  }
 }
 
 function queryOfferings(formdata, req, res, next) {
@@ -114,22 +72,37 @@ function queryOfferings(formdata, req, res, next) {
   }
 }
 
-function queryPassengerName(formdata, req, res, next) {
+function queryInstructorCourses(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
-    const sql = 'select FirstName, LastName from Passenger where PsgrID = $id;';
-    const name = db.prepare(sql).get({ $id: formdata.ID });
+    const sql = "SELECT OfferNo, CourseNo, OffTerm, OffYear FROM Offering LEFT JOIN"
+                + " Faculty ON Offering.FacSSN = Faculty.FacSSN WHERE"
+                + " Offering.FacSSN = $SSN;";
+    req.app.locals.courses = db.prepare(sql).all({ $SSN: formdata.ID });
+    console.info(req.app.locals.courses.length, "courses found for this instructor", );
+    queryFacultyName(formdata, req, res, next);
+  }
+  else {
+    throw new Error("500 Instructor Courses query failed to find database");
+  }
+}
+
+function queryFacultyName(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = "SELECT FacFirstName, FacLastName FROM Faculty WHERE FacSSN ="
+                + " $SSN;";
+    const name = db.prepare(sql).get({ $SSN: formdata.ID });
     if (name) {
-      req.app.locals.psgr_name = name;
-      req.app.locals.title = `Welcome, ${name.FirstName} ${name.LastName}`;
-      queryTickets(formdata, req, res, next);
+      req.app.locals.fac_name = name;
+      req.app.locals.title = `Welcome, ${name.FacFirstName} ${name.FacLastName}`;
     }
     else {
       throw new Error(`400 No passenger has ID ${formdata.ID}`);
     }
   }
   else {
-    throw new Error("500 Passenger-name query failed to find database");
+    throw new Error("500 Faculty-name query failed to find database");
   }
 }
 
@@ -197,3 +170,70 @@ function renderErrorPage(err, req, res, next) {
 }
 
 module.exports = router;
+
+//* LEFTOVER FUNCTIONS FROM DR. BROWN'S WORK *//
+
+function performActions(formdata, req) {
+  if (formdata.action) {
+    switch(formdata.action) {
+      case "cancel_ticket":
+        cancelTicket(formdata.ticket_ID, req.app.locals.db);
+        break;
+      case "book_flight":
+        bookFlight(formdata, req);
+        break;
+    }
+  }
+}
+
+function cancelTicket(ticket_ID, db) {
+  const sql = 'delete from Ticket where TktNum = $tktnum;';
+  const changes = db.prepare(sql).run({ $tktnum: ticket_ID });
+  console.info(`Canceling ticket changed ${changes.changes} row(s)`);
+}
+
+function bookFlight(formdata, req) {
+  const db = req.app.locals.db;
+  const sql = 'insert into Ticket (PsgrID, FltNum, FltDate)'
+              + ' values ($id, $fltnum, $fltdate);';
+  const changes = db.prepare(sql).run({ $id: formdata.ID, 
+                                        $fltnum: formdata.FltNum, 
+                                        $fltdate: formdata.FltDate });
+  console.info(`Booking flight changed ${changes.changes} row(s)`)
+}
+
+function queryFlights(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = 'select FltNum as Flight, Origin, Dest, Departs, Arrives,'
+                  + ' ModelName as Aircraft'
+                  + ' from Flight natural join ACModel order by Departs;';
+    req.app.locals.flights = db.prepare(sql).all();
+    console.info(req.app.locals.flights.length, "flights found", );
+    if (formdata.role === "Passenger") {
+      queryPassengerName(formdata, req, res, next);
+    }
+  }
+  else {
+    throw new Error("500 Flights query failed to find database");
+  }
+}
+
+function queryPassengerName(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = 'select FirstName, LastName from Passenger where PsgrID = $id;';
+    const name = db.prepare(sql).get({ $id: formdata.ID });
+    if (name) {
+      req.app.locals.psgr_name = name;
+      req.app.locals.title = `Welcome, ${name.FirstName} ${name.LastName}`;
+      queryTickets(formdata, req, res, next);
+    }
+    else {
+      throw new Error(`400 No passenger has ID ${formdata.ID}`);
+    }
+  }
+  else {
+    throw new Error("500 Passenger-name query failed to find database");
+  }
+}

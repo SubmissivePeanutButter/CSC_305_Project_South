@@ -5,6 +5,7 @@ block content
   //    added, as well as for currently scheduled offerings to be canceled
   h1= title
 
+  a(href="/") Back
   if offerings
     if offerings.length > 0
       table
@@ -23,15 +24,17 @@ block content
                 td= val
             td
               //- Course cancelation was not been implented yet, meaning that 
-              //- these input tags are current placeholders.
+              //- these input tags are current placeholders. Thus, you will get
+              //- an error if you click "Cancel".
               form(action="",method="get")
-                input(type="hidden",name="action",value="cancel_ticket")
+                input(type="hidden",name="action",value="cancel_offering")
                 input(type="hidden",name="ID",value=`${formdata.ID}`)
                 input(type="hidden",name="role",value=`${formdata.role}`)
                 input(type="hidden",name="offerings",value=`${row['Flight']}`)
                 input(type="hidden",name="role",value="Registrar")
                 input(type="submit",value="Cancel")
-        a(href="/") Back
+  else
+    p No courses found for this term.
   
   //- if formdata.role
   //-   table
