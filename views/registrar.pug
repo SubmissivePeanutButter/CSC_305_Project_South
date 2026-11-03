@@ -14,6 +14,7 @@ block content
         tr
           each col in Object.keys(offerings[0])
             th= col
+          th Edit Course
           th Cancel Course
         each row in Object.values(offerings)
           tr
@@ -23,9 +24,17 @@ block content
               else
                 td= val
             td.center-cell
-              //- Course cancelation was not been implented yet, meaning that 
+              //- Offering editing has not been implented yet, meaning that 
+              //- these input tags are current placeholders.
+              form(action="",method="get")
+                input(type="submit",value="Edit")
+            td.center-cell
+              //- Offering cancelation has not been implented yet, meaning that 
               //- these input tags are current placeholders.
               form(action="",method="get")
                 input(type="submit",value="Cancel")
   else
     p No courses found for this term.
+  br
+  form(action="/new-offering",method="get")
+    input(type="submit",value="Add Offering")
