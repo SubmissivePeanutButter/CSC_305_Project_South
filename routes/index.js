@@ -62,6 +62,11 @@ function queryStudent(formdata, req, res, next) {
                 + " Offering.FacSSN = Faculty.FacSSN"
                 + " WHERE Enrollment.StdSSN = $SSN;";
     req.app.locals.past_enrollments = db.prepare(sql).all({ $SSN: formdata.ID });
+    const sql2 = "SELECT CourseNo, FacFirstName, FacLastName, OffLocation"
+                + " OffTime, OffDays FROM Offering LEFT JOIN Faculty ON"
+                + " Offering.FacSSN = Faculty.FacSSN WHERE OffTerm = 'WINTER' and"
+                + " OffYear = 2026;";
+    req.app.locals.offerings = db.prepare(sql2).all();
     console.info(req.app.locals.past_enrollments.length, "offerings found", );
   }
   else {

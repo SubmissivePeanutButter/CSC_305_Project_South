@@ -27,4 +27,21 @@ block content
               else
                 td= val
   else
-    h2 No courses found for this student
+    h2 No past enrollments found for this student
+  if offerings
+    if offerings.length > 0
+      table
+        caption
+          h2 Winter 2026 Offerings
+        tr
+          each col in Object.keys(offerings[0])
+            th= col
+        each row in Object.values(offerings)
+          tr
+            each val in row
+              if val === null
+                td TBD
+              else
+                td= val
+  else
+    p No courses found for winter 2026.
