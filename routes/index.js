@@ -98,7 +98,7 @@ function queryFacultyName(formdata, req, res, next) {
       req.app.locals.title = `Welcome, ${name.FacFirstName} ${name.FacLastName}`;
     }
     else {
-      throw new Error(`400 No passenger has ID ${formdata.ID}`);
+      throw new Error(`400 No Facculty has ID ${formdata.ID}`);
     }
   }
   else {
