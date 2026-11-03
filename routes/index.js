@@ -63,12 +63,12 @@ function queryStudent(formdata, req, res, next) {
                 + " WHERE Enrollment.StdSSN = $SSN AND (Offering.OffYear <> 2026 OR Offering.OffTerm <> 'WINTER');";
     req.app.locals.past_enrollments = db.prepare(sql).all({ $SSN: formdata.ID });
     //this mess shows unique offer numbers while still giving the enrollment datato tell if a user is enrolled or not i hope :(
-    const sql2 = "SELECT CourseNo, FacFirstName, FacLastName, OffLocation"
+    const sql2 = "SELECT CourseNo, FacFirstName, FacLastName, OffLocation, sum(Enrollment.StdSSN = $SSN) as IsEnrolled, "
                 + " OffTime, OffDays FROM (Offering LEFT JOIN Enrollment ON Offering.OfferNO = Enrollment.OfferNO) LEFT JOIN Faculty ON"
                 + " Offering.FacSSN = Faculty.FacSSN WHERE OffTerm = 'WINTER' and"
                 + " OffYear = 2026"
                 + " Group BY Offering.OfferNo;";
-    req.app.locals.offerings = db.prepare(sql2).all();
+    req.app.locals.offerings = db.prepare(sql2).all({ $SSN: formdata.ID });
     console.info(req.app.locals.past_enrollments.length, "offerings found", );
   }
   else {
