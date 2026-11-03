@@ -16,6 +16,10 @@ router.post('/', function(req, res, next) {
   makePage(req.body, req, res, next);
 });
 
+router.get('/new-offering', (req, res) => {
+  res.render('new-offering');
+});
+
 function makePage(formdata, req, res, next) {
   req.app.locals.formdata = formdata;
   try {
@@ -37,6 +41,8 @@ function makePage(formdata, req, res, next) {
   }
 }
 
+/* START OF SQL QUERIES */
+
 function queryDatabase(formdata, req, res, next) {
   if (formdata.role) {
     if (formdata.role === "Student") {
@@ -47,12 +53,14 @@ function queryDatabase(formdata, req, res, next) {
     }
     else if (formdata.role === "Registrar") {
       queryOfferings(formdata, req, res, next);
+      queryCourseList(formdata, req, res, next);
     }
     else {
       throw new Error(`400 Unknown role: ${formdata.role}`);
     }
   }  // No role, no query
 }
+
 function queryStudent(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
@@ -77,6 +85,7 @@ function queryStudent(formdata, req, res, next) {
     throw new Error("500 Students query failed to find database");
   }
 }
+
 function queryOfferings(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
@@ -86,9 +95,6 @@ function queryOfferings(formdata, req, res, next) {
                 + " OffYear = 2026;";
     req.app.locals.offerings = db.prepare(sql).all();
     console.info(req.app.locals.offerings.length, "offerings found", );
-    // if (formdata.role === "Registrar") {
-    //   queryPassengerName(formdata, req, res, next);
-    // }
   }
   else {
     throw new Error("500 Offerings query failed to find database");
@@ -132,6 +138,20 @@ function queryFacultyName(formdata, req, res, next) {
     throw new Error("500 Faculty-name query failed to find database");
   }
 }
+
+function queryCourseList(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = "SELECT CourseNo, CrsDesc, CrsUnits FROM Course";
+    req.app.locals.courses = db.prepare(sql).all();
+    console.info(req.app.locals.courses.length, "courses found", );
+  }
+  else {
+    throw new Error("500 Course List query failed to find database");
+  }
+}
+
+/* END OF SQL QUERIES */
 
 function renderPage(formdata, req, res, next) {
   res.render(req.app.locals.page, { 

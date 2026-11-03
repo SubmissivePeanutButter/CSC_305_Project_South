@@ -13,7 +13,7 @@ block content
   a(href="/") Back
   if invalid_student
     h2 No student found with ID #{formdata.ID}
-  if past_enrollments
+  else if past_enrollments
     if past_enrollments.length > 0
       table
         caption
@@ -42,10 +42,15 @@ block content
         each row in Object.values(offerings)
           tr
             each val in row
-              if val === null
-                td #[em TBD]
-              else
-                td= val
+              case val
+                when null
+                  td #[em TBD]
+                when 0
+                  td No
+                when 1
+                  td Yes
+                default
+                  td= val
             td.center-cell
               form(action="",method="get")
                 input(type="checkbox")
