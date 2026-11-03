@@ -120,9 +120,12 @@ function queryFacultyName(formdata, req, res, next) {
       req.app.locals.fac_name = `${name.FacFirstName} ${name.FacLastName}`;
       req.app.locals.title = `Faculty - ${req.app.locals.fac_name}`;
       req.app.locals.welcome = `Welcome, ${req.app.locals.fac_name}`;
+      req.app.locals.invalid_faculty = false;
     }
     else {
-      throw new Error(`400 No Faculty has ID ${formdata.ID}`);
+      // No faculty has this ID: the page shows a message instead of an error
+      req.app.locals.invalid_faculty = true;
+      req.app.locals.welcome = "Faculty";
     }
   }
   else {
@@ -189,7 +192,6 @@ function performActions(formdata, req) {
     }
   }
 }
-
 function cancelTicket(ticket_ID, db) {
   const sql = 'delete from Ticket where TktNum = $tktnum;';
   const changes = db.prepare(sql).run({ $tktnum: ticket_ID });

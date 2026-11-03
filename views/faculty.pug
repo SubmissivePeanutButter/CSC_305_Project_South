@@ -9,6 +9,8 @@ block content
   h1= welcome
 
   a(href="/") Back
+  if invalid_faculty
+    h2 No faculty found with ID #{formdata.ID}
   if courses
     if courses.length > 0
       table
