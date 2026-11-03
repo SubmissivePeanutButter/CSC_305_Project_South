@@ -18,11 +18,11 @@ const dbconnect = require(path.resolve(pubpath, 'javascripts', 'dbconnect.js'));
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
-
 /**
  * Connect to database and attach it to app.locals
  */
 const dbname = path.resolve(pubpath, 'univdb.sqli');
+// const dbname = path.resolve(pubpath, 'grasshopper-air-2026.sqlite');
 console.log(dbname);
 app.locals.db = dbconnect.dbopen(dbname);
 
@@ -115,10 +115,9 @@ function gracefulShutdown(signal) {
   server.close(() => {
       console.log('Http server closed.');
       if (app.locals.db) {
-          dbconnect.dbclose(app.locals.db, () => { 
-              console.log('Exiting after closing database.');
-              process.exit(0); 
-          });
+          dbconnect.dbclose(app.locals.db);
+          console.log('Exiting after closing database.');
+          process.exit(0); 
       }
       else {
           console.log('Exiting, no database to close.')

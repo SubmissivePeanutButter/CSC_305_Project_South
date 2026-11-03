@@ -7,7 +7,7 @@ const dbopen = (dbpath) => {
 };
 
 // close the database connection
-const dbclose = (db, afterCloseCallback) => { 
+const dbclose = (db) => { 
   if (db.isOpen) {
     db.close();
     console.info('Closed the database connection.');
