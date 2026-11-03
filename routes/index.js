@@ -94,8 +94,9 @@ function queryFacultyName(formdata, req, res, next) {
                 + " $SSN;";
     const name = db.prepare(sql).get({ $SSN: formdata.ID });
     if (name) {
-      req.app.locals.fac_name = name;
-      req.app.locals.title = `Welcome, ${name.FacFirstName} ${name.FacLastName}`;
+      req.app.locals.fac_name = `${name.FacFirstName} ${name.FacLastName}`;
+      req.app.locals.title = `Faculty - ${req.app.locals.fac_name}`;
+      req.app.locals.welcome = `Welcome, ${req.app.locals.fac_name}`;
     }
     else {
       throw new Error(`400 No passenger has ID ${formdata.ID}`);
@@ -103,26 +104,6 @@ function queryFacultyName(formdata, req, res, next) {
   }
   else {
     throw new Error("500 Faculty-name query failed to find database");
-  }
-}
-
-function queryTickets(formdata, req, res, next) {
-  if (req.app.locals.db) {
-    const db = req.app.locals.db;
-    const sql = 'SELECT TktNum as Ticket, FltNum as Flight, Origin as "From",'
-                + ' Dest as "To", FltDate as Date, Departs, Arrives,'
-                + ' ModelName as Aircraft, Seat'
-                + ' from Ticket natural join Flight natural join ACModel'
-                + ' where PsgrID = $id'
-                + ' order by FltDate, Departs;';
-    const tickets = db.prepare(sql).all({ $id: formdata.ID });
-    if (tickets) {
-      console.info(`${tickets.length} tickets found`);
-      req.app.locals.tickets = tickets;
-    }
-  }
-  else {
-    throw new Error("500 Tickets query failed to find database");
   }
 }
 
@@ -235,5 +216,25 @@ function queryPassengerName(formdata, req, res, next) {
   }
   else {
     throw new Error("500 Passenger-name query failed to find database");
+  }
+}
+
+function queryTickets(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = 'SELECT TktNum as Ticket, FltNum as Flight, Origin as "From",'
+                + ' Dest as "To", FltDate as Date, Departs, Arrives,'
+                + ' ModelName as Aircraft, Seat'
+                + ' from Ticket natural join Flight natural join ACModel'
+                + ' where PsgrID = $id'
+                + ' order by FltDate, Departs;';
+    const tickets = db.prepare(sql).all({ $id: formdata.ID });
+    if (tickets) {
+      console.info(`${tickets.length} tickets found`);
+      req.app.locals.tickets = tickets;
+    }
+  }
+  else {
+    throw new Error("500 Tickets query failed to find database");
   }
 }
