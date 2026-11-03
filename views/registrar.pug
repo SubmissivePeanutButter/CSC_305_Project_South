@@ -22,30 +22,10 @@ block content
                 td #[em TBD]
               else
                 td= val
-            td
+            td.center-cell
               //- Course cancelation was not been implented yet, meaning that 
-              //- these input tags are current placeholders. Thus, you will get
-              //- an error if you click "Cancel".
+              //- these input tags are current placeholders.
               form(action="",method="get")
-                input(type="hidden",name="action",value="cancel_offering")
-                input(type="hidden",name="ID",value=`${formdata.ID}`)
-                input(type="hidden",name="role",value=`${formdata.role}`)
-                input(type="hidden",name="offerings",value=`${row['Flight']}`)
-                input(type="hidden",name="role",value="Registrar")
                 input(type="submit",value="Cancel")
   else
     p No courses found for this term.
-  
-  //- if formdata.role
-  //-   table
-  //-     caption
-  //-       h2 Form data
-  //-     tr
-  //-       th Key
-  //-       th Value
-  //-     each value, key in formdata
-  //-       tr
-  //-         td= key
-  //-         td= value
-  //- else
-  //-   h2 No form data
