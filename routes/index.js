@@ -40,7 +40,7 @@ function makePage(formdata, req, res, next) {
 function queryDatabase(formdata, req, res, next) {
   if (formdata.role) {
     if (formdata.role === "Student") {
-      // Do something
+      queryStudent(formdata, req, res, next);
     }
     else if (formdata.role === "Faculty") {
       queryInstructorCourses(formdata, req, res, next);
@@ -53,7 +53,26 @@ function queryDatabase(formdata, req, res, next) {
     }
   }  // No role, no query
 }
-
+function queryStudent(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = "SELECT Offering.CourseNo, Offering.OffTerm, Offering.OffYear, Faculty.FacFirstName, Faculty.FacLastName, Enrollment.EnrGrade"
+                + " FROM (Offering INNER JOIN Enrollment ON"
+                + " Offering.OfferNO = Enrollment.OfferNO) LEFT JOIN Faculty ON" 
+                + " Offering.FacSSN = Faculty.FacSSN"
+                + " WHERE Enrollment.StdSSN = $SSN;";
+    req.app.locals.past_enrollments = db.prepare(sql).all({ $SSN: formdata.ID });
+    const sql2 = "SELECT CourseNo, FacFirstName, FacLastName, OffLocation"
+                + " OffTime, OffDays FROM Offering LEFT JOIN Faculty ON"
+                + " Offering.FacSSN = Faculty.FacSSN WHERE OffTerm = 'WINTER' and"
+                + " OffYear = 2026;";
+    req.app.locals.offerings = db.prepare(sql2).all();
+    console.info(req.app.locals.past_enrollments.length, "offerings found", );
+  }
+  else {
+    throw new Error("500 Students query failed to find database");
+  }
+}
 function queryOfferings(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
@@ -99,7 +118,7 @@ function queryFacultyName(formdata, req, res, next) {
       req.app.locals.welcome = `Welcome, ${req.app.locals.fac_name}`;
     }
     else {
-      throw new Error(`400 No passenger has ID ${formdata.ID}`);
+      throw new Error(`400 No Faculty has ID ${formdata.ID}`);
     }
   }
   else {

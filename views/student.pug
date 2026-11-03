@@ -11,17 +11,37 @@ block content
       input(type="hidden",name="role",value="Student")
       //input(type="submit")
   a(href="/") Back
-
-  if formdata.role
-    table
-      caption
-        h2 Form data
-      tr
-        th Key
-        th Value
-      each value, key in formdata
+  if past_enrollments
+    if past_enrollments.length > 0
+      table
+        caption
+          h2 past enrollments
         tr
-          td= key
-          td= value
+          each col in Object.keys(past_enrollments[0])
+            th= col
+        each row in Object.values(past_enrollments)
+          tr
+            each val in row
+              if val === null
+                td TBD
+              else
+                td= val
   else
-    h2 No form data
+    h2 No past enrollments found for this student
+  if offerings
+    if offerings.length > 0
+      table
+        caption
+          h2 Winter 2026 Offerings
+        tr
+          each col in Object.keys(offerings[0])
+            th= col
+        each row in Object.values(offerings)
+          tr
+            each val in row
+              if val === null
+                td TBD
+              else
+                td= val
+  else
+    p No courses found for winter 2026.
