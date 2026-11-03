@@ -40,7 +40,7 @@ function makePage(formdata, req, res, next) {
 function queryDatabase(formdata, req, res, next) {
   if (formdata.role) {
     if (formdata.role === "Student") {
-      // Do something
+      queryStudent(formdata, req, res, next);
     }
     else if (formdata.role === "Faculty") {
       queryInstructorCourses(formdata, req, res, next);
@@ -53,7 +53,21 @@ function queryDatabase(formdata, req, res, next) {
     }
   }  // No role, no query
 }
-
+function queryStudent(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = "SELECT Offering.CourseNo, Offering.OffTerm, Offering.OffYear, Faculty.FacFirstName, Faculty.FacLastName, Enrollment.EnrGrade"
+                + " FROM (Offering INNER JOIN Enrollment ON"
+                + " Offering.OfferNO = Enrollment.OfferNO) LEFT JOIN Faculty ON" 
+                + " Offering.FacSSN = Faculty.FacSSN"
+                + " WHERE Enrollment.StdSSN = $SSN;";
+    req.app.locals.past_enrollments = db.prepare(sql).all({ $SSN: formdata.ID });
+    console.info(req.app.locals.past_enrollments.length, "offerings found", );
+  }
+  else {
+    throw new Error("500 Students query failed to find database");
+  }
+}
 function queryOfferings(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
