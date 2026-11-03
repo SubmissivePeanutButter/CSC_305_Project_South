@@ -11,7 +11,7 @@ block content
   a(href="/") Back
   if invalid_faculty
     h2 No faculty found with ID #{formdata.ID}
-  if courses
+  else if courses
     if courses.length > 0
       table
         caption
@@ -24,13 +24,13 @@ block content
           tr
             each val in row
               if val === null
-                td TBD
+                td #[em TBD]
               else
                 td= val
             td.center-cell
               //- Course cancelation was not been implented yet, meaning that 
               //- these input tags are current placeholders.
-              form(action="",method="get")
-                input(type="submit",value="Edit")
+              form(action="/edit-course",method="get")
+                button(type="submit",name="edit",value=row[0]) Edit
   else
     p No courses found for this instructor.

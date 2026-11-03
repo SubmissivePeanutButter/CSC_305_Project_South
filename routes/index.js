@@ -20,6 +20,10 @@ router.get('/new-offering', (req, res) => {
   res.render('new-offering');
 });
 
+router.get('/edit-course', (req, res) => {
+  res.render('edit-course');
+})
+
 function makePage(formdata, req, res, next) {
   req.app.locals.formdata = formdata;
   try {
@@ -50,10 +54,11 @@ function queryDatabase(formdata, req, res, next) {
     }
     else if (formdata.role === "Faculty") {
       queryInstructorCourses(formdata, req, res, next);
+      queryCourseInformation(formdata, req, res, next);
     }
     else if (formdata.role === "Registrar") {
       queryOfferings(formdata, req, res, next);
-      queryCourseList(formdata, req, res, next);
+      queryCourseList(formdata, req, res, next); // Always grabbing the course list may not be the most efficient solution
     }
     else {
       throw new Error(`400 Unknown role: ${formdata.role}`);
@@ -149,6 +154,21 @@ function queryCourseList(formdata, req, res, next) {
   }
   else {
     throw new Error("500 Course List query failed to find database");
+  }
+}
+
+function queryCourseInformation(formdata, req, res, next, OfferNo) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = "SELECT StdFirstName, StdLastName, Enrollment.StdSSN, EnrGrade"
+                + " FROM Enrollment LEFT JOIN Student on Enrollment.StdSSN ="
+                + " Student.StdSSN WHERE OfferNo = $OfferNo";
+    req.app.locals.info = db.prepare(sql).all({ $OfferNo: 1234 });
+    console.info(req.app.locals.info.length, "students found", );
+    queryFacultyName(formdata, req, res, next);
+  }
+  else {
+    throw new Error("500 Instructor Courses query failed to find database");
   }
 }
 
