@@ -30,7 +30,12 @@ block content
             td.center-cell
               //- Course cancelation was not been implented yet, meaning that 
               //- these input tags are current placeholders.
-              form(action="/edit-course",method="get")
-                button(type="submit",name="edit",value=row[0]) Edit
+              form(action="/student-roster",method="get")
+                button(type="submit",name="edit",onclick=`grabOfferNo(1234)`) Edit
+                script.
+                  function grabOfferNo(num) {
+                    console.info("Your Offer Number is:", num);
+                    return num;
+                  }
   else
     p No courses found for this instructor.

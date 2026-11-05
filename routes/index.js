@@ -20,8 +20,8 @@ router.get('/new-offering', (req, res) => {
   res.render('new-offering');
 });
 
-router.get('/edit-course', (req, res) => {
-  res.render('edit-course');
+router.get('/student-roster', (req, res) => {
+  res.render('student-roster');
 })
 
 function makePage(formdata, req, res, next) {
@@ -54,7 +54,7 @@ function queryDatabase(formdata, req, res, next) {
     }
     else if (formdata.role === "Faculty") {
       queryInstructorCourses(formdata, req, res, next);
-      queryCourseInformation(formdata, req, res, next);
+      queryStudentRoster(formdata, req, res, next);
     }
     else if (formdata.role === "Registrar") {
       queryOfferings(formdata, req, res, next);
@@ -157,13 +157,15 @@ function queryCourseList(formdata, req, res, next) {
   }
 }
 
-function queryCourseInformation(formdata, req, res, next, OfferNo) {
+function queryStudentRoster(formdata, req, res, next, OfferNo) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
     const sql = "SELECT StdFirstName, StdLastName, Enrollment.StdSSN, EnrGrade"
                 + " FROM Enrollment LEFT JOIN Student on Enrollment.StdSSN ="
                 + " Student.StdSSN WHERE OfferNo = $OfferNo";
-    req.app.locals.info = db.prepare(sql).all({ $OfferNo: 1234 });
+    console.info("Your formdata ID is:",formdata.OfferNo);
+    req.app.locals.info = db.prepare(sql).all({ $OfferNo: formdata.OfferNo });
+    req.app.locals.course = false;
     console.info(req.app.locals.info.length, "students found", );
     queryFacultyName(formdata, req, res, next);
   }
@@ -233,6 +235,7 @@ function performActions(formdata, req) {
     }
   }
 }
+
 function cancelTicket(ticket_ID, db) {
   const sql = 'delete from Ticket where TktNum = $tktnum;';
   const changes = db.prepare(sql).run({ $tktnum: ticket_ID });

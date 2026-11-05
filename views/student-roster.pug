@@ -3,7 +3,7 @@ extends layout
 block content
   // TODO: Display offerings scheduled for Winter 2026; allow new offerings to be
   //    added, as well as for currently scheduled offerings to be canceled
-  h1 Edit Course
+  h1 [Add Offering Name Here]
   p #[em [WORK IN PROGRESS]]
 
   a(href="/") Back
@@ -11,11 +11,11 @@ block content
     if info.length > 0
       table
         caption
-          h2 Course Info
+          h2 Student Roster
         tr
           each col in Object.keys(info[0])
             th= col
-          th Add Course
+          th Edit Grade
         each row in Object.values(info)
           tr
             each val in row
@@ -24,9 +24,9 @@ block content
               else
                 td= val
             td.center-cell
-              //- Course adding has not been implented yet, meaning that 
+              //- Grade editing has not been implented yet, meaning that 
               //- this input tag is current a placeholder.
               form(action="",method="get")
-                input(type="submit",value="Add")
+                input(type="submit",value="Edit")
   else
     p No courses found for this term.
