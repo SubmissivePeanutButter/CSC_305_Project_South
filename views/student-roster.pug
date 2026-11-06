@@ -7,16 +7,16 @@ block content
   p #[em [WORK IN PROGRESS]]
 
   a(href="/") Back
-  if info
-    if info.length > 0
+  if students
+    if students.length > 0
       table
         caption
           h2 Student Roster
         tr
-          each col in Object.keys(info[0])
+          each col in Object.keys(students[0])
             th= col
           th Edit Grade
-        each row in Object.values(info)
+        each row in Object.values(students)
           tr
             each val in row
               if val === null

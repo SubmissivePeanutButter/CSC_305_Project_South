@@ -19,7 +19,7 @@ block content
         tr
           each col in Object.keys(courses[0])
             th= col
-          th Edit Course
+          th Edit Grades
         each row in Object.values(courses)
           tr
             each val in row
@@ -30,12 +30,13 @@ block content
             td.center-cell
               //- Course cancelation was not been implented yet, meaning that 
               //- these input tags are current placeholders.
-              form(action="/student-roster",method="get")
-                button(type="submit",name="edit",onclick=`grabOfferNo(1234)`) Edit
-                script.
-                  function grabOfferNo(num) {
-                    console.info("Your Offer Number is:", num);
-                    return num;
-                  }
+              form(action="/submit",method="post")
+                input(type="hidden", value=`${row.OfferNo}`, name="offerNo")
+                button(type="submit") Edit
   else
     p No courses found for this instructor.
+
+  //- each row in Object.values(courses)
+  //-   each val in row
+  //-     p= JSON.stringify(row)
+  //-     p= row.OfferNo

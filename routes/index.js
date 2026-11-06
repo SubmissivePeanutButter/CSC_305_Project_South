@@ -20,7 +20,16 @@ router.get('/new-offering', (req, res) => {
   res.render('new-offering');
 });
 
-router.get('/student-roster', (req, res) => {
+// router.get('/student-roster', (req, res) => {
+//   res.render('student-roster');
+// })
+
+router.post('/submit', (req, res, next) => {
+  const formdata = req.query;
+  const offerNo = req.body.offerNo;
+  console.info("Offering Selected:", offerNo);
+  queryStudentRoster(formdata, req, res, next, offerNo);
+  // res.render('student-roster', { passedValue: offerNo });
   res.render('student-roster');
 })
 
@@ -31,7 +40,7 @@ function makePage(formdata, req, res, next) {
 
     if (formdata.role) {
       req.app.locals.page = formdata.role.toLowerCase();
-      req.app.locals.title = formdata.role
+      req.app.locals.title = formdata.role;
       queryDatabase(formdata, req, res, next);
     }
     else {
@@ -54,7 +63,7 @@ function queryDatabase(formdata, req, res, next) {
     }
     else if (formdata.role === "Faculty") {
       queryInstructorCourses(formdata, req, res, next);
-      queryStudentRoster(formdata, req, res, next);
+      // queryStudentRoster(formdata, req, res, next);
     }
     else if (formdata.role === "Registrar") {
       queryOfferings(formdata, req, res, next);
@@ -157,16 +166,14 @@ function queryCourseList(formdata, req, res, next) {
   }
 }
 
-function queryStudentRoster(formdata, req, res, next, OfferNo) {
+function queryStudentRoster(formdata, req, res, next, offerNo) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
     const sql = "SELECT StdFirstName, StdLastName, Enrollment.StdSSN, EnrGrade"
                 + " FROM Enrollment LEFT JOIN Student on Enrollment.StdSSN ="
                 + " Student.StdSSN WHERE OfferNo = $OfferNo";
-    console.info("Your formdata ID is:",formdata.OfferNo);
-    req.app.locals.info = db.prepare(sql).all({ $OfferNo: formdata.OfferNo });
-    req.app.locals.course = false;
-    console.info(req.app.locals.info.length, "students found", );
+    req.app.locals.students = db.prepare(sql).all({ $OfferNo: offerNo });
+    console.info(req.app.locals.students.length, "students found", );
     queryFacultyName(formdata, req, res, next);
   }
   else {
