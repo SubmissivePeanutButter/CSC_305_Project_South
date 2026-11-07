@@ -49,11 +49,19 @@ block content
                   td No
                   td.center-cell
                     form(action="",method="get")
+                      input(type="hidden",name="action",value="add_course")
+                      input(type="hidden",name="ID",value=`${formdata.ID}`)
+                      input(type="hidden",name="role",value=`${formdata.role}`)
+                      input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
                       input(type="submit",value="Add")
                 when 1
                   td Yes
                   td.center-cell
                     form(action="",method="get")
+                      input(type="hidden",name="action",value="drop_course")
+                      input(type="hidden",name="ID",value=`${formdata.ID}`)
+                      input(type="hidden",name="role",value=`${formdata.role}`)
+                      input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
                       input(type="submit",value="Drop")
                 default
                   td= val

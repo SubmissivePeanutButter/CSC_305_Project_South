@@ -31,7 +31,8 @@ block content
               //- Course cancelation was not been implented yet, meaning that 
               //- these input tags are current placeholders.
               form(action="/submit",method="post")
-                input(type="hidden", value=`${row.OfferNo}`, name="offerNo")
+                //- input(type="hidden",name="offerNo",value=`${row.OfferNo}`)
+                input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
                 button(type="submit") Edit
   else
     p No courses found for this instructor.
