@@ -10,7 +10,7 @@ block content
       input(type="hidden",name="ID",value=`${formdata.ID}`)
       input(type="hidden",name="role",value="Student")
       //input(type="submit")
-  a(href="/") Back
+  a(href="/") Home
   if invalid_student
     h2 No student found with ID #{formdata.ID}
   else if past_enrollments
