@@ -4,7 +4,7 @@ block content
   // TODO: Display the courses in which the student has already enrolled (all terms)
   // TODO: Display the courses offered in the upcoming term (Winter 2026), including
   //    a way for the stident to enroll in and drop those courses
-  h1= title
+  h1= welcome
   div(id="form")
     form(action="",method="get")
       input(type="hidden",name="ID",value=`${formdata.ID}`)
@@ -47,14 +47,20 @@ block content
                   td #[em TBD]
                 when 0
                   td No
+                  td.center-cell
+                    form(action="",method="get")
+                      input(type="submit",value="Add")
                 when 1
                   td Yes
+                  td.center-cell
+                    form(action="",method="get")
+                      input(type="submit",value="Drop")
                 default
                   td= val
-            td.center-cell
-              form(action="",method="get")
-                input(type="checkbox")
+            //- td.center-cell
+            //-   form(action="",method="get")
+            //-     input(type="checkbox")
   else
     p No courses found for Winter 2026.
-  br
-  input(type="submit",value="Accept Changes")
+  //- br
+  //- input(type="submit",value="Accept Changes")

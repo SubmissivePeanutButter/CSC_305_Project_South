@@ -20,10 +20,6 @@ router.get('/new-offering', (req, res) => {
   res.render('new-offering');
 });
 
-// router.get('/student-roster', (req, res) => {
-//   res.render('student-roster');
-// })
-
 router.post('/submit', (req, res, next) => {
   const formdata = req.query;
   const offerNo = req.body.offerNo;
@@ -75,6 +71,8 @@ function queryDatabase(formdata, req, res, next) {
   }  // No role, no query
 }
 
+//- STUDENT QUERIES
+
 function queryStudent(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
@@ -95,27 +93,39 @@ function queryStudent(formdata, req, res, next) {
                 + " Group BY Offering.OfferNo;";
     req.app.locals.offerings = db.prepare(sql2).all({ $SSN: formdata.ID });
     console.info(req.app.locals.past_enrollments.length, "offerings found", );
+    queryStudentName(formdata, req, res, next);
   }
   else {
     throw new Error("500 Students query failed to find database");
   }
 }
 
-function queryOfferings(formdata, req, res, next) {
+function queryStudentName(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
-    const sql = "SELECT OfferNo, CourseNo, FacFirstName, FacLastName, OffLocation,"
-                + " OffTime, OffDays FROM Offering LEFT JOIN Faculty ON"
-                + " Offering.FacSSN = Faculty.FacSSN WHERE OffTerm = 'WINTER' and"
-                + " OffYear = 2026;";
-    req.app.locals.offerings = db.prepare(sql).all();
-    console.info(req.app.locals.offerings.length, "offerings found", );
+    const sql = "SELECT StdFirstName, StdLastName FROM Student WHERE StdSSN ="
+                + " $SSN;";
+    console.info('Form ID:', formdata.ID);
+    const name = db.prepare(sql).get({ $SSN: formdata.ID });
+    console.info('Name found:', name);
+    if (name) {
+      req.app.locals.std_name = `${name.StdFirstName} ${name.StdLastName}`;
+      req.app.locals.title = `Student - ${req.app.locals.std_name}`;
+      req.app.locals.welcome = `Welcome, ${req.app.locals.std_name}`;
+      req.app.locals.invalid_student = false;
+    }
+    else {
+      // No student has this ID: the page shows a message instead of an error
+      req.app.locals.invalid_student = true;
+      req.app.locals.welcome = "Student";
+    }
   }
   else {
-    throw new Error("500 Offerings query failed to find database");
+    throw new Error("500 Student-name query failed to find database");
   }
 }
 
+//- FACULTY QUERIES
 function queryInstructorCourses(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
@@ -154,18 +164,6 @@ function queryFacultyName(formdata, req, res, next) {
   }
 }
 
-function queryCourseList(formdata, req, res, next) {
-  if (req.app.locals.db) {
-    const db = req.app.locals.db;
-    const sql = "SELECT CourseNo, CrsDesc, CrsUnits FROM Course";
-    req.app.locals.courses = db.prepare(sql).all();
-    console.info(req.app.locals.courses.length, "courses found", );
-  }
-  else {
-    throw new Error("500 Course List query failed to find database");
-  }
-}
-
 function queryStudentRoster(formdata, req, res, next, offerNo) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
@@ -178,6 +176,35 @@ function queryStudentRoster(formdata, req, res, next, offerNo) {
   }
   else {
     throw new Error("500 Instructor Courses query failed to find database");
+  }
+}
+
+//- REGISTRAR QUERIES
+
+function queryOfferings(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = "SELECT OfferNo, CourseNo, FacFirstName, FacLastName, OffLocation,"
+                + " OffTime, OffDays FROM Offering LEFT JOIN Faculty ON"
+                + " Offering.FacSSN = Faculty.FacSSN WHERE OffTerm = 'WINTER' and"
+                + " OffYear = 2026;";
+    req.app.locals.offerings = db.prepare(sql).all();
+    console.info(req.app.locals.offerings.length, "offerings found", );
+  }
+  else {
+    throw new Error("500 Offerings query failed to find database");
+  }
+}
+
+function queryCourseList(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = "SELECT CourseNo, CrsDesc, CrsUnits FROM Course";
+    req.app.locals.courses = db.prepare(sql).all();
+    console.info(req.app.locals.courses.length, "courses found", );
+  }
+  else {
+    throw new Error("500 Course List query failed to find database");
   }
 }
 
@@ -274,6 +301,12 @@ function queryFlights(formdata, req, res, next) {
   else {
     throw new Error("500 Flights query failed to find database");
   }
+}
+
+function addCourse(formdata, req) {
+  // Add code
+  const db = req.app.locals.db;
+  const sql = ''
 }
 
 function queryPassengerName(formdata, req, res, next) {
