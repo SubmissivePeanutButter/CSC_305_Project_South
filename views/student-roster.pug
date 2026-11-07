@@ -3,10 +3,11 @@ extends layout
 block content
   // TODO: Display offerings scheduled for Winter 2026; allow new offerings to be
   //    added, as well as for currently scheduled offerings to be canceled
-  h1 [Add Offering Name Here]
+  h1= title
   p #[em [WORK IN PROGRESS]]
 
-  a(href="/") Home
+  //- a(href="/") Home
+  input(type="button", value="Back", onclick="history.back()")
   if students
     if students.length > 0
       table

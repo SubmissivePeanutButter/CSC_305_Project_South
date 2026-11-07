@@ -1,21 +1,22 @@
 extends layout
 
 block content
-  // TODO: Display offerings scheduled for Winter 2026; allow new offerings to be
-  //    added, as well as for currently scheduled offerings to be canceled
+  // TODO: Add functionality for adding a new course offering. In other words, make
+  // the 'Add' button work :)
   h1 New Offering
   p #[em [WORK IN PROGRESS]]
 
-  a(href="/") Home
+  //- a(href="/") Home
+  input(type="button", value="Back", onclick="history.back()")
   if courses
     if courses.length > 0
       table
         caption
-          h2 Add a Course
+          h2 Add an Offering
         tr
           each col in Object.keys(courses[0])
             th= col
-          th Add Course
+          th Add Offering
         each row in Object.values(courses)
           tr
             each val in row
@@ -24,8 +25,8 @@ block content
               else
                 td= val
             td.center-cell
-              //- Course adding has not been implented yet, meaning that 
-              //- this input tag is current a placeholder.
+              // The ability for the registrar to add an offering still needs to be
+              // implented, meaning that this input tag is current a placeholder.
               form(action="",method="get")
                 input(type="submit",value="Add")
   else

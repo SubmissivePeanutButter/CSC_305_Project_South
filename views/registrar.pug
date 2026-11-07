@@ -1,11 +1,13 @@
 extends layout
 
 block content
-  // TODO: Display offerings scheduled for Winter 2026; allow new offerings to be
-  //    added, as well as for currently scheduled offerings to be canceled
+  // TODO: Add the ability to add an offering (using new-offering), edit an 
+  // offering, and cancel an offering.
   h1= title
+  p #[em [WORK IN PROGRESS]]
 
-  a(href="/") Home
+  //- a(href="/") Home
+  input(type="button", value="Home", onclick="window.location.href='/'")
   if offerings
     if offerings.length > 0
       table
@@ -14,8 +16,8 @@ block content
         tr
           each col in Object.keys(offerings[0])
             th= col
-          th Edit Course
-          th Cancel Course
+          th Edit Offering
+          th Cancel Offering
         each row in Object.values(offerings)
           tr
             each val in row
@@ -24,12 +26,12 @@ block content
               else
                 td= val
             td.center-cell
-              //- Offering editing has not been implented yet, meaning that 
+              //- Offering editing still needs to be implemented, meaning that 
               //- these input tags are current placeholders.
               form(action="",method="get")
                 input(type="submit",value="Edit")
             td.center-cell
-              //- Offering cancelation has not been implented yet, meaning that 
+              //- Offering cancelation still needs to be implemented, meaning that 
               //- these input tags are current placeholders.
               form(action="",method="get")
                 input(type="submit",value="Cancel")

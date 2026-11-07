@@ -8,7 +8,8 @@ block content
   //    show a new page or another table/form
   h1= welcome
 
-  a(href="/") Home
+  //- a(href="/") Home
+  input(type="button", value="Home", onclick="window.location.href='/'")
   if invalid_faculty
     h2 No faculty found with ID #{formdata.ID}
   else if courses
@@ -28,12 +29,11 @@ block content
               else
                 td= val
             td.center-cell
-              //- Course cancelation was not been implented yet, meaning that 
-              //- these input tags are current placeholders.
               form(action="/submit",method="post")
-                //- input(type="hidden",name="offerNo",value=`${row.OfferNo}`)
+                //- input(type="hidden",name="ID",value="${formdata.ID}")
+                //- input(type="hidden",name="role",value=`${formdata.role}`)
                 input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
-                button(type="submit") Edit
+                input(type="submit",value="Edit")
   else
     p No courses found for this instructor.
 

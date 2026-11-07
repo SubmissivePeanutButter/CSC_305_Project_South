@@ -1,16 +1,9 @@
 extends layout
 
 block content
-  // TODO: Display the courses in which the student has already enrolled (all terms)
-  // TODO: Display the courses offered in the upcoming term (Winter 2026), including
-  //    a way for the stident to enroll in and drop those courses
   h1= welcome
-  div(id="form")
-    form(action="",method="get")
-      input(type="hidden",name="ID",value=`${formdata.ID}`)
-      input(type="hidden",name="role",value="Student")
-      //input(type="submit")
-  a(href="/") Home
+  //- a(href="/") Home
+  input(type="button", value="Home", onclick="window.location.href='/'")
   if invalid_student
     h2 No student found with ID #{formdata.ID}
   else if past_enrollments
@@ -65,10 +58,5 @@ block content
                       input(type="submit",value="Drop")
                 default
                   td= val
-            //- td.center-cell
-            //-   form(action="",method="get")
-            //-     input(type="checkbox")
   else
     p No courses found for Winter 2026.
-  //- br
-  //- input(type="submit",value="Accept Changes")

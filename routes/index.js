@@ -213,6 +213,8 @@ function queryStudentRoster(formdata, req, res, next, offerNo) {
                 + " FROM Enrollment LEFT JOIN Student on Enrollment.StdSSN ="
                 + " Student.StdSSN WHERE OfferNo = $OfferNo";
     req.app.locals.students = db.prepare(sql).all({ $OfferNo: offerNo });
+    // const name = req.app.locals.students;
+    req.app.locals.title = `Selected Offering: ${offerNo}`;
     console.info(req.app.locals.students.length, "students found", );
     queryFacultyName(formdata, req, res, next);
   }
