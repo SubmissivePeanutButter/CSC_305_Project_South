@@ -32,8 +32,8 @@ router.get('/submit', (req, res, next) => {
   const offerNo = req.query.offerNo;
   const formdata = req.query;
   console.info("Getting offering:", offerNo);
-  queryStudentRoster(formdata, req, res, next, offerNo);
   performActions(formdata, req);
+  queryStudentRoster(formdata, req, res, next, offerNo);
   res.render('student-roster');
 })
 

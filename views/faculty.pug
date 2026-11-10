@@ -29,7 +29,9 @@ block content
               else
                 td= val
             td.center-cell
-              form(action=`/submit?ID=${formdata.ID}&role=${formdata.role}`,method="post")
+              form(action=`/submit`,method="post")
+                input(type="hidden",name="ID",value="${formdata.ID}")
+                input(type="hidden",name="role",value=`${formdata.role}`)
                 input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
                 input(type="submit",value="Edit")
   else

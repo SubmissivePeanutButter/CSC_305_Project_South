@@ -30,10 +30,10 @@ block content
               //- this input tag is current a placeholder.
               form(action="/submit",method="get")
                 input(type="hidden",name="action",value="edit_grade")
-                input.textbox(type="text",name="new_grade",placeholder="0.0–4.0",required)
+                input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.01",min="0",max="4.0")
                 input(type="hidden",name="ID",value=`${row['StdSSN']}`)
                 input(type="hidden",name="role",value=`${formdata.role}`)
                 input(type="hidden",name="offerNo",value=`${offering}`)
-                input(type="submit",value="Edit",onclick="window.location.reload();")
+                input(type="submit",value="Edit")//-,onclick="window.location.reload();")
   else
     p No courses found for this term.
