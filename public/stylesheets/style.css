@@ -35,6 +35,11 @@ table, th, td {
   vertical-align: center;
 }
 
+.textbox {
+  width: 50px;
+  text-align: center;
+}
+
 /* .button {
   display: 
 } */

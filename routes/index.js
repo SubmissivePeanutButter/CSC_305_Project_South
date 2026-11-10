@@ -30,16 +30,19 @@ router.post('/submit', (req, res, next) => {
 })
 
 function makePage(formdata, req, res, next) {
+  console.info("Making page...");
   req.app.locals.formdata = formdata;
   try {
-    performActions(formdata, req); //- Non-functional at this time
+    performActions(formdata, req);
 
     if (formdata.role) {
+      console.info("A user role has been found:", formdata.role);
       req.app.locals.page = formdata.role.toLowerCase();
       req.app.locals.title = formdata.role;
       queryDatabase(formdata, req, res, next);
     }
     else {
+      console.info("No user role could be found.");
       req.app.locals.page = 'index';
       req.app.locals.title = 'University DB';
     }
@@ -73,6 +76,7 @@ function queryDatabase(formdata, req, res, next) {
 
 function performActions(formdata, req) {
   if (formdata.action) {
+    console.info("Trying to perform an action:", formdata.action);
     switch(formdata.action) {
       // case "cancel_ticket":
       //   cancelTicket(formdata.ticket_ID, req.app.locals.db);
@@ -85,8 +89,12 @@ function performActions(formdata, req) {
         addCourse(formdata, req);
         break;
       case "drop_course":
-        console.info("Dropping offering...")
+        console.info("Dropping offering...");
         dropCourse(formdata, req);
+        break;
+      case "edit_grade":
+        console.info("Editing grade...");
+        editGrade(formdata, req);
         break;
     }
   }
@@ -215,12 +223,26 @@ function queryStudentRoster(formdata, req, res, next, offerNo) {
     req.app.locals.students = db.prepare(sql).all({ $OfferNo: offerNo });
     // const name = req.app.locals.students;
     req.app.locals.title = `Selected Offering: ${offerNo}`;
+    req.app.locals.offering = offerNo;
     console.info(req.app.locals.students.length, "students found", );
     queryFacultyName(formdata, req, res, next);
   }
   else {
     throw new Error("500 Instructor Courses query failed to find database");
   }
+}
+
+function editGrade(formdata, req) {
+  // IMPORTANT: After testing, delete 'univdb', make a copy of 'univdb_copy', 
+  // then rename that copy to 'univdb'
+  console.info("Trying to edit grade: [Grade]", formdata.new_grade, "for [Student]", formdata.ID, "[Offering]", formdata.ID);
+  const db = req.app.locals.db;
+  const sql = "UPDATE Enrollment SET EnrGrade = $NewGrade WHERE OfferNo = $OfferNo AND"
+              + "StdSSN = $SSN;";
+  const changes = db.prepare(sql).run({ $NewGrade: formdata.new_grade,
+                                        $OfferNo: formdata.offerNo,
+                                        $SSN: formdata.ID });
+  console.info(`Grade updated ${changes.changes} row(s)`);
 }
 
 //- REGISTRAR QUERIES

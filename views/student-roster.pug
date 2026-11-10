@@ -28,6 +28,11 @@ block content
               //- Grade editing has not been implented yet, meaning that 
               //- this input tag is current a placeholder.
               form(action="",method="get")
+                input(type="hidden",name="action",value="edit_grade")
+                input.textbox(type="text",name="new_grade",placeholder="0.0–4.0",required)
+                input(type="hidden",name="ID",value=`${row['StdSSN']}`)
+                input(type="hidden",name="role",value=`${formdata.role}`)
+                input(type="hidden",name="offerNo",value=`${offering}`)
                 input(type="submit",value="Edit")
   else
     p No courses found for this term.
