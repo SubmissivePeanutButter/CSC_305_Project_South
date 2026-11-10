@@ -21,7 +21,7 @@ router.get('/new-offering', (req, res) => {
 });
 
 router.post('/submit', (req, res, next) => {
-  const formdata = req.query;
+  const formdata = req.body;
   const offerNo = req.body.offerNo;
   console.info("Offering Selected:", offerNo);
   queryStudentRoster(formdata, req, res, next, offerNo);
