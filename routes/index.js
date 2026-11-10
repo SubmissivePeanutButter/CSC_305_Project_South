@@ -21,11 +21,19 @@ router.get('/new-offering', (req, res) => {
 });
 
 router.post('/submit', (req, res, next) => {
-  const formdata = req.body;
   const offerNo = req.body.offerNo;
+  const formdata = req.body;
   console.info("Offering Selected:", offerNo);
   queryStudentRoster(formdata, req, res, next, offerNo);
-  // res.render('student-roster', { passedValue: offerNo });
+  res.render('student-roster');
+})
+
+router.get('/submit', (req, res, next) => {
+  const offerNo = req.query.offerNo;
+  const formdata = req.query;
+  console.info("Getting offering:", offerNo);
+  queryStudentRoster(formdata, req, res, next, offerNo);
+  performActions(formdata, req);
   res.render('student-roster');
 })
 
@@ -235,10 +243,10 @@ function queryStudentRoster(formdata, req, res, next, offerNo) {
 function editGrade(formdata, req) {
   // IMPORTANT: After testing, delete 'univdb', make a copy of 'univdb_copy', 
   // then rename that copy to 'univdb'
-  console.info("Trying to edit grade: [Grade]", formdata.new_grade, "for [Student]", formdata.ID, "[Offering]", formdata.ID);
+  console.info("Trying to edit grade: [Grade]", formdata.new_grade, "for [Student]", formdata.ID, "[Offering]", formdata.offerNo);
   const db = req.app.locals.db;
   const sql = "UPDATE Enrollment SET EnrGrade = $NewGrade WHERE OfferNo = $OfferNo AND"
-              + "StdSSN = $SSN;";
+              + " StdSSN = $SSN;";
   const changes = db.prepare(sql).run({ $NewGrade: formdata.new_grade,
                                         $OfferNo: formdata.offerNo,
                                         $SSN: formdata.ID });
