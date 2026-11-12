@@ -1,15 +1,9 @@
 extends layout
 
 block content
-  // TODO: Display all offerings taught by the current instructor, including the
-  //    the course number, term, and year for that offering — also allow a way for 
-  //    the instructor to choose one offering (?) and edit grades
-  // TODO: When an instructor tries to edit grades, we need to decide whether we'll
-  //    show a new page or another table/form
   h1= welcome
 
-  //- a(href="/") Home
-  input(type="button", value="Home", onclick="window.location.href='/'")
+  input(type="button",value="Home",onclick="window.location.href='/'")
   if invalid_faculty
     h2 No faculty found with ID #{formdata.ID}
   else if courses
@@ -36,8 +30,3 @@ block content
                 input(type="submit",value="Edit")
   else
     p No courses found for this instructor.
-
-  //- each row in Object.values(courses)
-  //-   each val in row
-  //-     p= JSON.stringify(row)
-  //-     p= row.OfferNo

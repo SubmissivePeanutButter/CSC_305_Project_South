@@ -251,7 +251,7 @@ function editGrade(formdata, req) {
               + " StdSSN = $SSN;";
   const changes = db.prepare(sql).run({ $NewGrade: formdata.new_grade,
                                         $OfferNo: formdata.offerNo,
-                                        $SSN: formdata.stud_ID });
+                                        $SSN: formdata.ID });
   console.info(`Grade updated ${changes.changes} row(s)`);
 }
 

@@ -2,8 +2,8 @@ extends layout
 
 block content
   h1= welcome
-  //- a(href="/") Home
-  input(type="button", value="Home", onclick="window.location.href='/'")
+
+  input(type="button",value="Home",onclick="window.location.href='/'")
   if invalid_student
     h2 No student found with ID #{formdata.ID}
   else if past_enrollments
