@@ -7,8 +7,11 @@ block content
   p #[em [WORK IN PROGRESS]]
 
   //- a(href="/") Home
-  input(type="button", value="Back", onclick="history.back()")
-  input(type="button", value="Refresh", onclick="window.location.reload();")
+  form(action="/",method="get")
+    input(type="hidden",name="ID",value=`${formdata.ID}`)
+    input(type="hidden",name="role",value=`${formdata.role}`)
+    input(type="hidden",name="offerNo",value=`${offering}`)
+    input(type="submit",value="BackTest")
   if students
     if students.length > 0
       table
