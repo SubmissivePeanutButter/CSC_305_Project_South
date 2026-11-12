@@ -232,6 +232,8 @@ function queryStudentRoster(formdata, req, res, next, offerNo) {
     // const name = req.app.locals.students;
     req.app.locals.title = `Selected Offering: ${offerNo}`;
     req.app.locals.offering = offerNo;
+    req.app.locals.ID = formdata.ID;
+    req.app.locals.role = formdata.role;
     console.info(req.app.locals.students.length, "students found", );
     queryFacultyName(formdata, req, res, next);
   }
@@ -249,7 +251,7 @@ function editGrade(formdata, req) {
               + " StdSSN = $SSN;";
   const changes = db.prepare(sql).run({ $NewGrade: formdata.new_grade,
                                         $OfferNo: formdata.offerNo,
-                                        $SSN: formdata.ID });
+                                        $SSN: formdata.stud_ID });
   console.info(`Grade updated ${changes.changes} row(s)`);
 }
 

@@ -36,8 +36,8 @@ table, th, td {
 }
 
 .textbox {
-  width: 50px;
-  text-align: center;
+  width: 60px;
+  text-align: left;
 }
 
 /* .button {
