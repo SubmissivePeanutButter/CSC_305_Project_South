@@ -7,35 +7,36 @@ block content
   p #[em [WORK IN PROGRESS]]
 
   input(type="button",value="Home",onclick="window.location.href='/'")
-  if offerings
-    if offerings.length > 0
-      table
-        caption
-          h2 Winter 2026 Offerings
+  if offerings.length > 0
+    table
+      caption
+        h2 Winter 2026 Offerings
+      tr
+        each col in Object.keys(offerings[0])
+          th= col
+        th Edit Offering
+        th Cancel Offering
+      each row in Object.values(offerings)
         tr
-          each col in Object.keys(offerings[0])
-            th= col
-          th Edit Offering
-          th Cancel Offering
-        each row in Object.values(offerings)
-          tr
-            each val in row
-              if val === null
-                td #[em TBD]
-              else
-                td= val
-            td.center-cell
-              //- Offering editing still needs to be implemented, meaning that 
-              //- these input tags are current placeholders.
-              form(action="",method="get")
-                input(type="submit",value="Edit")
-            td.center-cell
-              //- Offering cancelation still needs to be implemented, meaning that 
-              //- these input tags are current placeholders.
-              form(action="",method="get")
-                input(type="submit",value="Cancel")
+          each val in row
+            if val === null
+              td #[em TBD]
+            else
+              td= val
+          td.center-cell
+            //- Offering editing still needs to be implemented, meaning that 
+            //- these input tags are current placeholders.
+            form(action="",method="get")
+              input(type="submit",value="Edit")
+          td.center-cell
+            form(action="",method="get")
+              input(type="hidden",name="action",value="cancel_offering")
+              input(type="hidden",name="ID",value=`${formdata.ID}`)
+              input(type="hidden",name="role",value=`${formdata.role}`)
+              input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
+              input(type="submit",value="Cancel")
   else
-    p No courses found for this term.
+    p #[em No courses found for this term.]
   br
   form(action="/new-offering",method="get")
     button(type="submit") Add Offering

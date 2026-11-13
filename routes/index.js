@@ -86,23 +86,21 @@ function performActions(formdata, req) {
   if (formdata.action) {
     console.info("Trying to perform an action:", formdata.action);
     switch(formdata.action) {
-      // case "cancel_ticket":
-      //   cancelTicket(formdata.ticket_ID, req.app.locals.db);
-      //   break;
-      // case "book_flight":
-      //   bookFlight(formdata, req);
-      //   break;
       case "add_course":
-        console.info("Adding offering...");
+        console.info("[Student] Adding offering...");
         addCourse(formdata, req);
         break;
       case "drop_course":
-        console.info("Dropping offering...");
+        console.info("[Student] Dropping offering...");
         dropCourse(formdata, req);
         break;
       case "edit_grade":
-        console.info("Editing grade...");
+        console.info("[Faculty] Editing grade...");
         editGrade(formdata, req);
+        break;
+      case "cancel_offering":
+        console.info("[Registrar] Canceling offering...");
+        cancelOffering(formdata, req);
         break;
     }
   }
@@ -114,20 +112,22 @@ function queryStudent(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
     req.app.locals.invalid_student = !db.prepare("SELECT 1 FROM Student WHERE StdSSN = $SSN;").get({ $SSN: formdata.ID });
-    const sql = "SELECT Offering.CourseNo, Offering.OffTerm, Offering.OffYear,"
+    // Query all of the student's enrolled courses
+    let sql = "SELECT Offering.CourseNo, Offering.OffTerm, Offering.OffYear,"
                 + " Faculty.FacFirstName, Faculty.FacLastName, Enrollment.EnrGrade"
                 + " FROM (Offering INNER JOIN Enrollment ON Offering.OfferNO ="
                 + " Enrollment.OfferNO) LEFT JOIN Faculty ON Offering.FacSSN ="
                 + " Faculty.FacSSN WHERE Enrollment.StdSSN = $SSN;";
-                //- AND (Offering.OffYear <> 2026 OR Offering.OffTerm <> 'WINTER');";
     req.app.locals.past_enrollments = db.prepare(sql).all({ $SSN: formdata.ID });
-    const sql2 = "SELECT Offering.OfferNo, CourseNo, FacFirstName, FacLastName,"
+    console.info("Found", req.app.locals.past_enrollments.length, "for selected student");
+    // Query all of the offerings for the latest term (Winter 2026)
+    sql = "SELECT Offering.OfferNo, CourseNo, FacFirstName, FacLastName,"
                 + " OffLocation, OffTime, OffDays, Offering.OfferNo IN"
                 + " (SELECT OfferNo FROM Enrollment WHERE StdSSN = $SSN) AS"
                 + " Enrolled FROM Offering LEFT JOIN Faculty ON Offering.FacSSN ="
                 + " Faculty.FacSSN WHERE OffTerm = 'WINTER' and OffYear = 2026"
                 + " Group BY Offering.OfferNo;";
-    req.app.locals.offerings = db.prepare(sql2).all({ $SSN: formdata.ID });
+    req.app.locals.offerings = db.prepare(sql).all({ $SSN: formdata.ID });
     console.info(req.app.locals.past_enrollments.length, "offerings found", );
     queryStudentName(formdata, req, res, next);
   }
@@ -164,9 +164,9 @@ function addCourse(formdata, req) {
   // then rename that copy to 'univdb'
   console.info("Trying to add: [Course]", formdata.offerNo, "[Student]", formdata.ID);
   const db = req.app.locals.db;
-  const sql = "INSERT INTO Enrollment (OfferNo, StdSSN) VALUES ($OfferNo,"
+  const sql = "INSERT INTO Enrollment (OfferNo, StdSSN) VALUES ($offerno,"
               + " $SSN);";
-  const changes = db.prepare(sql).run({ $OfferNo: formdata.offerNo,
+  const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
                                         $SSN: formdata.ID });
   console.info(`Enrollment changed ${changes.changes} row(s)`);
 }
@@ -176,13 +176,13 @@ function dropCourse(formdata, req) {
   // then rename that copy to 'univdb'
   console.info("Trying to drop: [Course]", formdata.offerNo, "[Student]", formdata.ID);
   const db = req.app.locals.db;
-  const sql = "DELETE FROM Enrollment WHERE OfferNo = $OfferNo AND StdSSN = $SSN;";
-  const changes = db.prepare(sql).run({ $OfferNo: formdata.offerNo,
+  const sql = "DELETE FROM Enrollment WHERE OfferNo = $offerno AND StdSSN = $SSN;";
+  const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
                                         $SSN: formdata.ID });
   console.info(`Enrollment changed ${changes.changes} row(s)`);
 }
 
-//- FACULTY QUERIES
+//- FACULTY QUERIES & ACTIONS
 
 function queryInstructorCourses(formdata, req, res, next) {
   if (req.app.locals.db) {
@@ -227,8 +227,8 @@ function queryStudentRoster(formdata, req, res, next, offerNo) {
     const db = req.app.locals.db;
     const sql = "SELECT StdFirstName, StdLastName, Enrollment.StdSSN, EnrGrade"
                 + " FROM Enrollment LEFT JOIN Student on Enrollment.StdSSN ="
-                + " Student.StdSSN WHERE OfferNo = $OfferNo";
-    req.app.locals.students = db.prepare(sql).all({ $OfferNo: offerNo });
+                + " Student.StdSSN WHERE OfferNo = $offerno";
+    req.app.locals.students = db.prepare(sql).all({ $offerno: offerNo });
     // const name = req.app.locals.students;
     req.app.locals.title = `Selected Offering: ${offerNo}`;
     req.app.locals.offering = offerNo;
@@ -247,15 +247,15 @@ function editGrade(formdata, req) {
   // then rename that copy to 'univdb'
   console.info("Trying to edit grade: [Grade]", formdata.new_grade, "for [Student]", formdata.ID, "[Offering]", formdata.offerNo);
   const db = req.app.locals.db;
-  const sql = "UPDATE Enrollment SET EnrGrade = $NewGrade WHERE OfferNo = $OfferNo AND"
+  const sql = "UPDATE Enrollment SET EnrGrade = $newgrade WHERE OfferNo = $offerno AND"
               + " StdSSN = $SSN;";
-  const changes = db.prepare(sql).run({ $NewGrade: formdata.new_grade,
-                                        $OfferNo: formdata.offerNo,
+  const changes = db.prepare(sql).run({ $newgrade: formdata.new_grade,
+                                        $offerno: formdata.offerNo,
                                         $SSN: formdata.ID });
   console.info(`Grade updated ${changes.changes} row(s)`);
 }
 
-//- REGISTRAR QUERIES
+//- REGISTRAR QUERIES & ACTIONS
 
 function queryOfferings(formdata, req, res, next) {
   if (req.app.locals.db) {
@@ -282,6 +282,18 @@ function queryCourseList(formdata, req, res, next) {
   else {
     throw new Error("500 Course List query failed to find database");
   }
+}
+
+function cancelOffering(formdata, req) {
+  // IMPORTANT: After testing, delete 'univdb', make a copy of 'univdb_copy', 
+  // then rename that copy to 'univdb'
+  const db = req.app.locals.db;
+  let sql = 'DELETE FROM Offering WHERE OfferNo = $offerno;';
+  let changes = db.prepare(sql).run({ $offerno: formdata.offerNo });
+  console.info(`Canceling offering ${formdata.offerNo} canceling ${changes.changes} offerings`);
+  sql = 'DELETE FROM Enrollment WHERE OfferNo = $offerno;';
+  changes = db.prepare(sql).run({ $offerno: formdata.offerNo });
+  console.info(`Removing enrollments removing ${changes.changes} enrollments`);
 }
 
 /* END OF SQL QUERIES & ACTIONS */
