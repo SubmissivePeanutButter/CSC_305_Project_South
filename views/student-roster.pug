@@ -2,10 +2,13 @@ extends layout
 
 block content
   h1= title
+  p #[em [WORK IN PROGRESS]]
 
+  //- a(href="/") Home
   form(action="/",method="get")
     input(type="hidden",name="ID",value=`${formdata.ID}`)
     input(type="hidden",name="role",value=`${formdata.role}`)
+    input(type="hidden",name="offerNo",value=`${offering}`)
     input(type="submit",value="Back")
   if students
     if students.length > 0
