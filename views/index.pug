@@ -17,13 +17,27 @@ block content
       else
         div(class="form_control")
           label(class="left",for="role") Role:
-          select.dropdown(name="role",id="role",required)
+          select.dropdown(name="role",id="role",onchange="checkRole(this.value)",required)
             option(value="") Please select a role
-            option Student
-            option Faculty
-            option Registrar
+            option(value="Student") Student
+            option(value="Faculty") Faculty
+            option(value="Registrar") Registrar
           output(class="flag")
       input(type="submit")
+      script.
+        function checkRole(value) {
+          const id_field = document.getElementById("ID");
+          if (value === "Registrar") {
+            id_field.value = 'N/A';
+            id_field.readOnly = true;
+            return;
+          }
+          else if (id_field.value === 'N/A') {
+            id_field.value = '';
+          }
+          id_field.readOnly = false;
+          return;
+        }
 
   if formdata.role
     table
