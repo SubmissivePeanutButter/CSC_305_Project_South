@@ -86,6 +86,7 @@ function performActions(formdata, req) {
   if (formdata.action) {
     console.info("Trying to perform an action:", formdata.action);
     switch(formdata.action) {
+      // For students
       case "add_course":
         console.info("[Student] Adding offering...");
         addCourse(formdata, req);
@@ -94,13 +95,19 @@ function performActions(formdata, req) {
         console.info("[Student] Dropping offering...");
         dropCourse(formdata, req);
         break;
+      // For faculty
       case "edit_grade":
         console.info("[Faculty] Editing grade...");
         editGrade(formdata, req);
         break;
+      // For registrar
       case "cancel_offering":
         console.info("[Registrar] Canceling offering...");
         cancelOffering(formdata, req);
+        break;
+      case "add_offering":
+        console.info("[Registrar] Adding offering...");
+        addOffering(formdata, req);
         break;
     }
   }
@@ -229,13 +236,11 @@ function queryStudentRoster(formdata, req, res, next, offerNo) {
                 + " FROM Enrollment LEFT JOIN Student on Enrollment.StdSSN ="
                 + " Student.StdSSN WHERE OfferNo = $offerno";
     req.app.locals.students = db.prepare(sql).all({ $offerno: offerNo });
-    // const name = req.app.locals.students;
     req.app.locals.title = `Selected Offering: ${offerNo}`;
     req.app.locals.offering = offerNo;
     req.app.locals.ID = formdata.ID;
     req.app.locals.role = formdata.role;
     console.info(req.app.locals.students.length, "students found", );
-    queryFacultyName(formdata, req, res, next);
   }
   else {
     throw new Error("500 Instructor Courses query failed to find database");
@@ -263,7 +268,7 @@ function queryOfferings(formdata, req, res, next) {
     const sql = "SELECT OfferNo, CourseNo, FacFirstName, FacLastName, OffLocation,"
                 + " OffTime, OffDays FROM Offering LEFT JOIN Faculty ON"
                 + " Offering.FacSSN = Faculty.FacSSN WHERE OffTerm = 'WINTER' and"
-                + " OffYear = 2026;";
+                + " OffYear = 2026 ORDER BY OfferNo ASC;";
     req.app.locals.offerings = db.prepare(sql).all();
     console.info(req.app.locals.offerings.length, "offerings found", );
   }
@@ -275,9 +280,10 @@ function queryOfferings(formdata, req, res, next) {
 function queryCourseList(formdata, req, res, next) {
   if (req.app.locals.db) {
     const db = req.app.locals.db;
-    const sql = "SELECT CourseNo, CrsDesc, CrsUnits FROM Course";
+    const sql = "SELECT CourseNo, CrsDesc, CrsUnits FROM Course ORDER BY" 
+                + " CourseNo ASC;";
     req.app.locals.courses = db.prepare(sql).all();
-    console.info(req.app.locals.courses.length, "courses found", );
+    console.info(req.app.locals.courses.length, "courses found");
   }
   else {
     throw new Error("500 Course List query failed to find database");
@@ -294,6 +300,29 @@ function cancelOffering(formdata, req) {
   sql = 'DELETE FROM Enrollment WHERE OfferNo = $offerno;';
   changes = db.prepare(sql).run({ $offerno: formdata.offerNo });
   console.info(`Removing enrollments removing ${changes.changes} enrollments`);
+  req.app.locals.status = `Success: Canceled offering [${formdata.offerNo}].`;
+}
+
+function addOffering(formdata, req) {
+  // IMPORTANT: After testing, delete 'univdb', make a copy of 'univdb_copy', 
+  // then rename that copy to 'univdb'
+  console.info("Trying to add: [Offering]", formdata.offerNo, "[Course]", formdata.courseNo);
+  const db = req.app.locals.db;
+  let sql = "SELECT OfferNo FROM Offering WHERE OfferNo = $offerno;";
+  // Check whether the offering number is already in use
+  check_offer = db.prepare(sql).all({ $offerno: formdata.offerNo });
+  if (check_offer.length === 0) {
+    sql = "INSERT INTO Offering (OfferNo, CourseNo, OffTerm, OffYear)"
+          + " VALUES ($offerno, $courseno, $offterm, $offyear);";
+    const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
+                                          $courseno: formdata.courseNo,
+                                          $offterm: formdata.offTerm,
+                                          $offyear: formdata.offYear });
+    console.info(`Adding offering adding ${changes.changes} row(s)`);
+  }
+  else {
+    console.info(`WARNING: Offering ${formdata.offerNo} already in use. Please try a different offering number.`);
+  }
 }
 
 /* END OF SQL QUERIES & ACTIONS */

@@ -7,26 +7,32 @@ block content
   p #[em [WORK IN PROGRESS]]
 
   input(type="button",value="Back",onclick="history.back()")
-  if courses
-    if courses.length > 0
-      table
-        caption
-          h2 Add an Offering
+  if courses.length > 0
+    table
+      caption
+        h2 Add an Offering
+      tr
+        each col in Object.keys(courses[0])
+          th= col
+        th Add Offering
+        th Offering Number
+      each row in Object.values(courses)
         tr
-          each col in Object.keys(courses[0])
-            th= col
-          th Add Offering
-        each row in Object.values(courses)
-          tr
-            each val in row
-              if val === null
-                td #[em TBD]
-              else
-                td= val
+          each val in row
+            if val === null
+              td #[em TBD]
+            else
+              td= val
+          form(action="/",method="get")
+            input(type="hidden",name="action",value="add_offering")
+            td
+              input.textbox(type="number",name="offerNo",min=1000,max=9999,required)
             td.center-cell
-              // The ability for the registrar to add an offering still needs to be
-              // implented, meaning that this input tag is current a placeholder.
-              form(action="",method="get")
-                input(type="submit",value="Add")
+              input(type="hidden",name="ID",value=`${formdata.ID}`)
+              input(type="hidden",name="role",value=`${formdata.role}`)
+              input(type="hidden",name="courseNo",value=`${row['CourseNo']}`)
+              input(type="hidden",name="offTerm",value="WINTER")
+              input(type="hidden",name="offYear",value=2026)
+              input(type="submit",value="Add")
   else
     p No courses found for this term.
