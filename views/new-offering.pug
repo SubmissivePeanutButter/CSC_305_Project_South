@@ -12,8 +12,12 @@ block content
       tr
         each col in Object.keys(courses[0])
           th= col
-        th Add Offering
         th Offering Number
+        th Faculty
+        th OffLocation
+        th OffTime
+        th OffDays
+        th Add Offering
       each row in Object.values(courses)
         tr
           each val in row
@@ -22,10 +26,30 @@ block content
             else
               td= val
           form(action="/",method="get")
-            input(type="hidden",name="action",value="add_offering")
+            // Add offering number [REQUIRED]
             td
               input.textbox(type="number",name="offerNo",min=1000,max=9999,required)
+            // Select faculty member [OPTIONAL]
+            td
+              select(name="instructor")
+                option(value="") Select
+                each instructor in instructors
+                  option(value=`${instructor.FacSSN}`)= `${instructor.FacFirstName} ${instructor.FacLastName}`
+            // Select offering location [OPTIONAL]
+            td
+              input.textbox(type="text",name="offLocation")
+            // Select offering time [OPTIONAL]
+            td
+              input(type="time",name="offTime",step="1")
+            // Select offering days [OPTIONAL]
+            td
+              select.textbox(name="offDays")
+                option(value="")
+                option(value="MW") MW
+                option(value="TTH") TTH
+            // Form submission
             td.center-cell
+              input(type="hidden",name="action",value="add_offering")
               input(type="hidden",name="ID",value=`${formdata.ID}`)
               input(type="hidden",name="role",value=`${formdata.role}`)
               input(type="hidden",name="courseNo",value=`${row['CourseNo']}`)

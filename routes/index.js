@@ -289,9 +289,22 @@ function queryCourseList(formdata, req, res, next) {
                 + " CourseNo ASC;";
     req.app.locals.courses = db.prepare(sql).all();
     console.info(req.app.locals.courses.length, "courses found");
+    queryFacultyList(formdata, req, res, next);
   }
   else {
     throw new Error("500 Course List query failed to find database");
+  }
+}
+
+function queryFacultyList(formdata, req, res, next) {
+  if (req.app.locals.db) {
+    const db = req.app.locals.db;
+    const sql = "SELECT FacSSN, FacFirstName, FacLastName From Faculty;";
+    req.app.locals.instructors = db.prepare(sql).all();
+    console.info(req.app.locals.instructors.length, "instructors found");
+  }
+  else {
+    throw new Error("500 Faculty list query failed in find database");
   }
 }
 
@@ -317,12 +330,17 @@ function addOffering(formdata, req) {
   // Check whether the offering number is already in use
   check_offer = db.prepare(sql).all({ $offerno: formdata.offerNo });
   if (check_offer.length === 0) {
-    sql = "INSERT INTO Offering (OfferNo, CourseNo, OffTerm, OffYear)"
-          + " VALUES ($offerno, $courseno, $offterm, $offyear);";
+    sql = "INSERT INTO Offering (OfferNo, CourseNo, OffTerm, OffYear, OffLocation,"
+          + " OffTime, FacSSN, OffDays) VALUES ($offerno, $courseno, $offterm,"
+          + " $offyear, $offlocation, $offtime, $facSSN, $offdays);";
     const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
                                           $courseno: formdata.courseNo,
                                           $offterm: formdata.offTerm,
-                                          $offyear: formdata.offYear });
+                                          $offyear: formdata.offYear,
+                                          $offlocation: formdata.offLocation,
+                                          $offtime: formdata.offTime,
+                                          $facSSN: formdata.instructor,
+                                          $offdays: formdata.offDays });
     console.info(`Adding offering adding ${changes.changes} row(s)`);
   }
   else {
