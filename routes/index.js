@@ -20,6 +20,11 @@ router.get('/new-offering', (req, res) => {
   res.render('new-offering');
 });
 
+router.get('/edit-offering', (req, res) => {
+  // Will probably need to add more here.
+  res.render('edit-offering');
+})
+
 router.post('/submit', (req, res, next) => {
   const offerNo = req.body.offerNo;
   const formdata = req.body;

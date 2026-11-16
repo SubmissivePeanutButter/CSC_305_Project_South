@@ -26,7 +26,11 @@ block content
           td.center-cell
             //- Offering editing still needs to be implemented, meaning that 
             //- these input tags are current placeholders.
-            form(action="",method="get")
+            form(action="/edit-offering",method="get")
+              input(type="hidden",name="action",value="edit_offering")
+              input(type="hidden",name="ID",value=`${formdata.ID}`)
+              input(type="hidden",name="role",value=`${formdata.role}`)
+              input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
               input(type="submit",value="Edit")
           td.center-cell
             form(action="",method="get")
