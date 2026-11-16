@@ -114,6 +114,10 @@ function performActions(formdata, req) {
         console.info("[Registrar] Adding offering...");
         addOffering(formdata, req);
         break;
+      case "edit_offering":
+        console.info("[Registrar] Editing offering...");
+        editOffering(formdata, req);
+        break;
     }
   }
 }
@@ -245,7 +249,7 @@ function queryStudentRoster(formdata, req, res, next, offerNo) {
     req.app.locals.offering = offerNo;
     req.app.locals.ID = formdata.ID;
     req.app.locals.role = formdata.role;
-    console.info(req.app.locals.students.length, "students found", );
+    console.info(req.app.locals.students.length, "students found");
   }
   else {
     throw new Error("500 Instructor Courses query failed to find database");
@@ -342,6 +346,31 @@ function addOffering(formdata, req) {
                                           $facSSN: formdata.instructor,
                                           $offdays: formdata.offDays });
     console.info(`Adding offering adding ${changes.changes} row(s)`);
+  }
+  else {
+    console.info(`WARNING: Offering ${formdata.offerNo} already in use. Please try a different offering number.`);
+  }
+}
+
+function editOffering(formdata, req) {
+  // IMPORTANT: After testing, delete 'univdb', make a copy of 'univdb_copy', 
+  // then rename that copy to 'univdb'
+  console.info("Trying to edit: [Offering]", formdata.offerNo, "[Course]", formdata.courseNo);
+  const db = req.app.locals.db;
+  let sql = "SELECT OfferNo FROM Offering WHERE OfferNo = $offerno;";
+  // Check whether the offering number is already in use
+  check_offer = db.prepare(sql).all({ $offerno: formdata.offerNo });
+  if (check_offer.length === 0) {
+    sql = "UPDATE Offering SET OfferNo=$offerno, FacSSN=$facSSN,"
+        + " OffLocation=$offlocation, OffTime=$offtime, OffDays=$offdays WHERE"
+        + " OfferNo=$oldoffer;";
+    const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
+                                          $facSSN: formdata.instructor,
+                                          $offlocation: formdata.offLocation,
+                                          $offtime: formdata.offTime,
+                                          $offdays: formdata.offDays,
+                                          $oldoffer: formdata.oldOffer });
+    console.info(`Editing offering changing ${changes.changes} row(s)`);
   }
   else {
     console.info(`WARNING: Offering ${formdata.offerNo} already in use. Please try a different offering number.`);

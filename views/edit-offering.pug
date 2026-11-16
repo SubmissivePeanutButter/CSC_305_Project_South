@@ -1,36 +1,36 @@
 extends layout
 
 block content
+  // Currently, no data is being fed to edit-offering, which is why all of the
+  // values will show up as 'N/A'. Also, I used a table simply because I copied
+  // much of the code from the Registrar page.
   h1 Edit Offering
   p #[em [WORK IN PROGRESS]]
 
-  input(type="button",value="Back",onclick="history.back()")
-  if courses.length > 0
+  input(type="button",value="Cancel",onclick="history.back()")
+  if offerings.length > 0
     table
       caption
-        h2 Add an Offering
+        h2 Selected Offering
       tr
-        each col in Object.keys(courses[0])
+        each col in Object.keys(offerings[0])
           th= col
-        th Add Offering
-        th Offering Number
-      each row in Object.values(courses)
-        tr
-          each val in row
-            if val === null
-              td #[em TBD]
-            else
-              td= val
+        th Submit
+      tr
+        each val in Object.keys(offerings[0])
+          if val === null
+            td #[em TBD]
+          else
+            td N/A
+        td.center-cell
+          //- Offering editing still needs to be implemented, meaning that 
+          //- these input tags are current placeholders.
           form(action="/",method="get")
-            input(type="hidden",name="action",value="add_offering")
-            td
-              input.textbox(type="number",name="offerNo",min=1000,max=9999,required)
-            td.center-cell
-              input(type="hidden",name="ID",value=`${formdata.ID}`)
-              input(type="hidden",name="role",value=`${formdata.role}`)
-              input(type="hidden",name="courseNo",value=`${row['CourseNo']}`)
-              input(type="hidden",name="offTerm",value="WINTER")
-              input(type="hidden",name="offYear",value=2026)
-              input(type="submit",value="Add")
+            input(type="hidden",name="action",value="edit_offering")
+            input(type="hidden",name="ID",value=`${formdata.ID}`)
+            input(type="hidden",name="role",value=`${formdata.role}`)
+            // Line 30's value is a placeholder, so please change it at some point
+            input(type="hidden",name="offerNo",value=`${Object.keys(offerings[0])['OfferNo']}`)
+            input(type="submit",value="Submit")
   else
-    p No courses found for this term.
+    p #[em No courses could be found.]
