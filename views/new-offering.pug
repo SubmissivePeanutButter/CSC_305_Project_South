@@ -31,19 +31,19 @@ block content
               input.textbox(type="number",name="offerNo",min=1000,max=9999,required)
             // Select faculty member [OPTIONAL]
             td
-              select(name="instructor")
+              select(name="instructor",required)
                 option(value="") Select
                 each instructor in instructors
                   option(value=`${instructor.FacSSN}`)= `${instructor.FacFirstName} ${instructor.FacLastName}`
             // Select offering location [OPTIONAL]
             td
-              input.textbox(type="text",name="offLocation")
+              input.textbox(type="text",name="offLocation",required)
             // Select offering time [OPTIONAL]
             td
-              input(type="time",name="offTime",step="1")
+              input(type="time",name="offTime",step="1",required)
             // Select offering days [OPTIONAL]
             td
-              select.textbox(name="offDays")
+              select.textbox(name="offDays",required)
                 option(value="")
                 option(value="MW") MW
                 option(value="TTH") TTH
