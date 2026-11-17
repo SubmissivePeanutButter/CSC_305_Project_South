@@ -1,6 +1,3 @@
-/* IMPORTANT - this file contains placeholder code
-referencing the Grasshopper database. Any references to that
-database will be removed at a later point. */
 var express = require('express');
 var router = express.Router();
 
@@ -20,31 +17,48 @@ router.get('/new-offering', (req, res) => {
   res.render('new-offering');
 });
 
-router.get('/edit-offering', (req, res) => {
-  // Will probably need to add more here.
-  res.render('edit-offering');
+router.get('/edit-offering', (req, res, next) => {
+  try {
+    req.app.locals.status = '';
+    const edit = queryOfferingToEdit(req.query, req);
+    res.render('edit-offering', { offering: edit.offering,
+                                  instructors: edit.instructors });
+  } catch (err) {
+    renderErrorPage(err, req, res, next);
+  }
 })
 
 router.post('/submit', (req, res, next) => {
   const offerNo = req.body.offerNo;
   const formdata = req.body;
   console.info("Offering Selected:", offerNo);
-  queryStudentRoster(formdata, req, res, next, offerNo);
-  res.render('student-roster');
+  try {
+    req.app.locals.status = '';
+    queryStudentRoster(formdata, req, res, next, offerNo);
+    res.render('student-roster');
+  } catch (err) {
+    renderErrorPage(err, req, res, next);
+  }
 })
 
 router.get('/submit', (req, res, next) => {
   const offerNo = req.query.offerNo;
   const formdata = req.query;
   console.info("Getting offering:", offerNo);
-  performActions(formdata, req);
-  queryStudentRoster(formdata, req, res, next, offerNo);
-  res.render('student-roster');
+  try {
+    req.app.locals.status = '';
+    performActions(formdata, req);
+    queryStudentRoster(formdata, req, res, next, offerNo);
+    res.render('student-roster');
+  } catch (err) {
+    renderErrorPage(err, req, res, next);
+  }
 })
 
 function makePage(formdata, req, res, next) {
   console.info("Making page...");
   req.app.locals.formdata = formdata;
+  req.app.locals.status = '';  // Clear any message left from an earlier request
   try {
     performActions(formdata, req);
 
@@ -180,6 +194,20 @@ function addCourse(formdata, req) {
   // then rename that copy to 'univdb'
   console.info("Trying to add: [Course]", formdata.offerNo, "[Student]", formdata.ID);
   const db = req.app.locals.db;
+  // Only offerings in the upcoming term (Winter 2026) can be added
+  if (!db.prepare("SELECT 1 FROM Student WHERE StdSSN = $SSN;").get({ $SSN: formdata.ID })) {
+    throw new Error(`400 No Student has ID ${formdata.ID}`);
+  }
+  if (!db.prepare("SELECT 1 FROM Offering WHERE OfferNo = $offerno AND OffTerm = 'WINTER'"
+                  + " AND OffYear = 2026;").get({ $offerno: formdata.offerNo })) {
+    throw new Error(`400 Offering ${formdata.offerNo} is not offered in Winter 2026`);
+  }
+  // No duplicate enrollments (also covers refreshing the page after an add)
+  if (db.prepare("SELECT 1 FROM Enrollment WHERE OfferNo = $offerno AND StdSSN = $SSN;")
+        .get({ $offerno: formdata.offerNo, $SSN: formdata.ID })) {
+    console.info("Student is already enrolled in this offering; nothing to add");
+    return;
+  }
   const sql = "INSERT INTO Enrollment (OfferNo, StdSSN) VALUES ($offerno,"
               + " $SSN);";
   const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
@@ -192,7 +220,11 @@ function dropCourse(formdata, req) {
   // then rename that copy to 'univdb'
   console.info("Trying to drop: [Course]", formdata.offerNo, "[Student]", formdata.ID);
   const db = req.app.locals.db;
-  const sql = "DELETE FROM Enrollment WHERE OfferNo = $offerno AND StdSSN = $SSN;";
+  // Only Winter 2026 offerings can be dropped, so past enrollments (and their
+  // grades) are never removed
+  const sql = "DELETE FROM Enrollment WHERE OfferNo = $offerno AND StdSSN = $SSN"
+              + " AND OfferNo IN (SELECT OfferNo FROM Offering WHERE OffTerm ="
+              + " 'WINTER' AND OffYear = 2026);";
   const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
                                         $SSN: formdata.ID });
   console.info(`Enrollment changed ${changes.changes} row(s)`);
@@ -243,7 +275,8 @@ function queryStudentRoster(formdata, req, res, next, offerNo) {
     const db = req.app.locals.db;
     const sql = "SELECT StdFirstName, StdLastName, Enrollment.StdSSN, EnrGrade"
                 + " FROM Enrollment LEFT JOIN Student on Enrollment.StdSSN ="
-                + " Student.StdSSN WHERE OfferNo = $offerno";
+                + " Student.StdSSN WHERE OfferNo = $offerno ORDER BY StdLastName,"
+                + " StdFirstName;";
     req.app.locals.students = db.prepare(sql).all({ $offerno: offerNo });
     req.app.locals.title = `Selected Offering: ${offerNo}`;
     req.app.locals.offering = offerNo;
@@ -261,12 +294,22 @@ function editGrade(formdata, req) {
   // then rename that copy to 'univdb'
   console.info("Trying to edit grade: [Grade]", formdata.new_grade, "for [Student]", formdata.ID, "[Offering]", formdata.offerNo);
   const db = req.app.locals.db;
+  // A grade must be a number from 0.0 to 4.0
+  const grade = Number(formdata.new_grade);
+  if (formdata.new_grade === undefined || String(formdata.new_grade).trim() === ""
+      || !Number.isFinite(grade) || grade < 0 || grade > 4) {
+    throw new Error(`400 A grade must be a number from 0.0 to 4.0 (got "${formdata.new_grade}")`);
+  }
   const sql = "UPDATE Enrollment SET EnrGrade = $newgrade WHERE OfferNo = $offerno AND"
               + " StdSSN = $SSN;";
-  const changes = db.prepare(sql).run({ $newgrade: formdata.new_grade,
+  const changes = db.prepare(sql).run({ $newgrade: grade,
                                         $offerno: formdata.offerNo,
                                         $SSN: formdata.ID });
   console.info(`Grade updated ${changes.changes} row(s)`);
+  if (changes.changes === 0) {
+    throw new Error(`400 Student ${formdata.ID} is not enrolled in offering ${formdata.offerNo}`);
+  }
+  req.app.locals.status = `Success: Saved grade ${grade} for student ${formdata.ID}.`;
 }
 
 //- REGISTRAR QUERIES & ACTIONS
@@ -313,15 +356,23 @@ function queryFacultyList(formdata, req, res, next) {
 }
 
 function cancelOffering(formdata, req) {
-  // IMPORTANT: After testing, delete 'univdb', make a copy of 'univdb_copy', 
+  // IMPORTANT: After testing, delete 'univdb', make a copy of 'univdb_copy',
   // then rename that copy to 'univdb'
   const db = req.app.locals.db;
-  let sql = 'DELETE FROM Offering WHERE OfferNo = $offerno;';
+  // Enrollments go first, then the offering (only Winter 2026 can be canceled)
+  let sql = "DELETE FROM Enrollment WHERE OfferNo IN (SELECT OfferNo FROM Offering"
+            + " WHERE OfferNo = $offerno AND OffTerm = 'WINTER' AND OffYear = 2026);";
   let changes = db.prepare(sql).run({ $offerno: formdata.offerNo });
-  console.info(`Canceling offering ${formdata.offerNo} canceling ${changes.changes} offerings`);
-  sql = 'DELETE FROM Enrollment WHERE OfferNo = $offerno;';
-  changes = db.prepare(sql).run({ $offerno: formdata.offerNo });
   console.info(`Removing enrollments removing ${changes.changes} enrollments`);
+  sql = "DELETE FROM Offering WHERE OfferNo = $offerno AND OffTerm = 'WINTER'"
+        + " AND OffYear = 2026;";
+  changes = db.prepare(sql).run({ $offerno: formdata.offerNo });
+  console.info(`Canceling offering ${formdata.offerNo} canceling ${changes.changes} offerings`);
+  if (changes.changes === 0) {
+    // e.g. the page was refreshed after the offering was already canceled
+    req.app.locals.status = `Offering [${formdata.offerNo}] is not scheduled for Winter 2026, so nothing was canceled.`;
+    return;
+  }
   req.app.locals.status = `Success: Canceled offering [${formdata.offerNo}].`;
 }
 
@@ -332,7 +383,7 @@ function addOffering(formdata, req) {
   const db = req.app.locals.db;
   let sql = "SELECT OfferNo FROM Offering WHERE OfferNo = $offerno;";
   // Check whether the offering number is already in use
-  check_offer = db.prepare(sql).all({ $offerno: formdata.offerNo });
+  const check_offer = db.prepare(sql).all({ $offerno: formdata.offerNo });
   if (check_offer.length === 0) {
     sql = "INSERT INTO Offering (OfferNo, CourseNo, OffTerm, OffYear, OffLocation,"
           + " OffTime, FacSSN, OffDays) VALUES ($offerno, $courseno, $offterm,"
@@ -343,38 +394,59 @@ function addOffering(formdata, req) {
                                           $offyear: formdata.offYear,
                                           $offlocation: formdata.offLocation,
                                           $offtime: formdata.offTime,
-                                          $facSSN: formdata.instructor,
+                                          $facSSN: formdata.instructor || null, // No instructor yet
                                           $offdays: formdata.offDays });
     console.info(`Adding offering adding ${changes.changes} row(s)`);
+    req.app.locals.status = `Success: Added offering [${formdata.offerNo}].`;
   }
   else {
-    console.info(`WARNING: Offering ${formdata.offerNo} already in use. Please try a different offering number.`);
+    throw new Error(`400 Offering number ${formdata.offerNo} is already in use. Please go back and try a different offering number.`);
   }
 }
 
 function editOffering(formdata, req) {
   // IMPORTANT: After testing, delete 'univdb', make a copy of 'univdb_copy', 
   // then rename that copy to 'univdb'
-  console.info("Trying to edit: [Offering]", formdata.offerNo, "[Course]", formdata.courseNo);
+  console.info("Trying to edit: [Offering]", formdata.offerNo);
   const db = req.app.locals.db;
-  let sql = "SELECT OfferNo FROM Offering WHERE OfferNo = $offerno;";
-  // Check whether the offering number is already in use
-  check_offer = db.prepare(sql).all({ $offerno: formdata.offerNo });
-  if (check_offer.length === 0) {
-    sql = "UPDATE Offering SET OfferNo=$offerno, FacSSN=$facSSN,"
-        + " OffLocation=$offlocation, OffTime=$offtime, OffDays=$offdays WHERE"
-        + " OfferNo=$oldoffer;";
-    const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
-                                          $facSSN: formdata.instructor,
-                                          $offlocation: formdata.offLocation,
-                                          $offtime: formdata.offTime,
-                                          $offdays: formdata.offDays,
-                                          $oldoffer: formdata.oldOffer });
-    console.info(`Editing offering changing ${changes.changes} row(s)`);
+  // The offering number stays the same; the registrar changes the instructor,
+  // location, time and days of an offering scheduled for Winter 2026
+  const sql = "UPDATE Offering SET FacSSN=$facSSN, OffLocation=$offlocation,"
+              + " OffTime=$offtime, OffDays=$offdays WHERE OfferNo=$offerno AND"
+              + " OffTerm = 'WINTER' AND OffYear = 2026;";
+  const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
+                                        $facSSN: formdata.instructor || null, // No instructor yet
+                                        $offlocation: formdata.offLocation,
+                                        $offtime: formdata.offTime,
+                                        $offdays: formdata.offDays });
+  console.info(`Editing offering changing ${changes.changes} row(s)`);
+  if (changes.changes === 0) {
+    throw new Error(`400 Offering ${formdata.offerNo} is not scheduled for Winter 2026`);
   }
-  else {
-    console.info(`WARNING: Offering ${formdata.offerNo} already in use. Please try a different offering number.`);
+  req.app.locals.status = `Success: Updated offering [${formdata.offerNo}].`;
+}
+
+// Loads the offering (and the instructor list) shown on the edit-offering page
+function queryOfferingToEdit(formdata, req) {
+  const db = req.app.locals.db;
+  if (!db) {
+    throw new Error("500 Offering query failed to find database");
   }
+  const sql = "SELECT OfferNo, Offering.CourseNo, CrsDesc, OffLocation, OffTime,"
+              + " FacSSN, OffDays FROM Offering INNER JOIN Course ON"
+              + " Offering.CourseNo = Course.CourseNo WHERE OfferNo = $offerno AND"
+              + " OffTerm = 'WINTER' AND OffYear = 2026;";
+  const offering = db.prepare(sql).get({ $offerno: formdata.offerNo });
+  if (!offering) {
+    throw new Error(`400 Offering ${formdata.offerNo} is not scheduled for Winter 2026`);
+  }
+  // The time input needs HH:MM:SS, but some times are stored as H:MM:SS
+  if (offering.OffTime) {
+    offering.OffTime = String(offering.OffTime).padStart(8, "0");
+  }
+  const instructors = db.prepare("SELECT FacSSN, FacFirstName, FacLastName FROM"
+                                 + " Faculty ORDER BY FacLastName, FacFirstName;").all();
+  return { offering, instructors };
 }
 
 /* END OF SQL QUERIES & ACTIONS */
@@ -423,78 +495,3 @@ function renderErrorPage(err, req, res, next) {
 }
 
 module.exports = router;
-
-
-//* LEFTOVER FUNCTIONS FROM DR. BROWN'S WORK *//
-
-function cancelTicket(ticket_ID, db) {
-  const sql = 'delete from Ticket where TktNum = $tktnum;';
-  const changes = db.prepare(sql).run({ $tktnum: ticket_ID });
-  console.info(`Canceling ticket changed ${changes.changes} row(s)`);
-}
-
-function bookFlight(formdata, req) {
-  const db = req.app.locals.db;
-  const sql = 'insert into Ticket (PsgrID, FltNum, FltDate)'
-              + ' values ($id, $fltnum, $fltdate);';
-  const changes = db.prepare(sql).run({ $id: formdata.ID, 
-                                        $fltnum: formdata.FltNum, 
-                                        $fltdate: formdata.FltDate });
-  console.info(`Booking flight changed ${changes.changes} row(s)`)
-}
-
-function queryFlights(formdata, req, res, next) {
-  if (req.app.locals.db) {
-    const db = req.app.locals.db;
-    const sql = 'select FltNum as Flight, Origin, Dest, Departs, Arrives,'
-                  + ' ModelName as Aircraft'
-                  + ' from Flight natural join ACModel order by Departs;';
-    req.app.locals.flights = db.prepare(sql).all();
-    console.info(req.app.locals.flights.length, "flights found", );
-    if (formdata.role === "Passenger") {
-      queryPassengerName(formdata, req, res, next);
-    }
-  }
-  else {
-    throw new Error("500 Flights query failed to find database");
-  }
-}
-
-function queryPassengerName(formdata, req, res, next) {
-  if (req.app.locals.db) {
-    const db = req.app.locals.db;
-    const sql = 'select FirstName, LastName from Passenger where PsgrID = $id;';
-    const name = db.prepare(sql).get({ $id: formdata.ID });
-    if (name) {
-      req.app.locals.psgr_name = name;
-      req.app.locals.title = `Welcome, ${name.FirstName} ${name.LastName}`;
-      queryTickets(formdata, req, res, next);
-    }
-    else {
-      throw new Error(`400 No passenger has ID ${formdata.ID}`);
-    }
-  }
-  else {
-    throw new Error("500 Passenger-name query failed to find database");
-  }
-}
-
-function queryTickets(formdata, req, res, next) {
-  if (req.app.locals.db) {
-    const db = req.app.locals.db;
-    const sql = 'SELECT TktNum as Ticket, FltNum as Flight, Origin as "From",'
-                + ' Dest as "To", FltDate as Date, Departs, Arrives,'
-                + ' ModelName as Aircraft, Seat'
-                + ' from Ticket natural join Flight natural join ACModel'
-                + ' where PsgrID = $id'
-                + ' order by FltDate, Departs;';
-    const tickets = db.prepare(sql).all({ $id: formdata.ID });
-    if (tickets) {
-      console.info(`${tickets.length} tickets found`);
-      req.app.locals.tickets = tickets;
-    }
-  }
-  else {
-    throw new Error("500 Tickets query failed to find database");
-  }
-}
