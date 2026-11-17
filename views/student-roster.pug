@@ -1,36 +1,47 @@
 extends layout
 
 block content
+  // TODO: Display offerings scheduled for Winter 2026; allow new offerings to be
+  //    added, as well as for currently scheduled offerings to be canceled
   h1= title
-  p= course
+  p #[em [WORK IN PROGRESS]]
 
+  //- a(href="/") Home
   form(action="/",method="get")
     input(type="hidden",name="ID",value=`${formdata.ID}`)
     input(type="hidden",name="role",value=`${formdata.role}`)
     input(type="hidden",name="offerNo",value=`${offering}`)
     input(type="submit",value="Back")
-  if students.length > 0
-    table
-      caption
-        h2 Student Roster
-      tr
-        each col in Object.keys(students[0])
-          th= col
-        th Edit Grade
-      each row in Object.values(students)
+  if students
+    if students.length > 0
+      table
+        caption
+          h2 Student Roster
         tr
-          each val in row
-            if val === null
-              td #[em TBD]
-            else
-              td= val
-          td.center-cell
-            form(action="/submit",method="get")
-              input(type="hidden",name="action",value="edit_grade")
-              input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.01",min="0",max="4.0")
-              input(type="hidden",name="ID",value=`${row['StdSSN']}`)
-              input(type="hidden",name="role",value=`${formdata.role}`)
-              input(type="hidden",name="offerNo",value=`${offering}`)
-              input(type="submit",value="Edit")
+          each col in Object.keys(students[0])
+            th= col
+          th Edit Grade
+        each stdnt in Object.values(students)
+          tr
+          //- Grade editing has not been implented yet, meaning that 
+          //- this input tag is current a placeholder.
+          form(action="/submit",method="get")
+            each key in Object.keys(stdnt)
+              if key == "EnrGrade"
+                td.center-cell
+                  input(type="hidden",name="action",value="edit_grade")
+                  if stdnt[key] === null
+                    input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.01",min="0",max="4.0")
+                  else 
+                    input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.01",min="0",max="4.0",value=`${stdnt[key]}`)
+                  input(type="hidden",name="ID",value=`${stdnt['StdSSN']}`)
+                  input(type="hidden",name="role",value=`${formdata.role}`)
+                  input(type="hidden",name="offerNo",value=`${offering}`) 
+              else if stdnt[key] === null
+                td #[em TBD]
+              else
+                td= stdnt[key]
+            td.center-cell
+              input(type="submit",value="Edit")//-,onclick="window.location.reload();")
   else
     p No courses found for this term.
