@@ -23,40 +23,41 @@ block content
                 td= val
   else
     h2 No past enrollments found for this student
-  if offerings
-    if offerings.length > 0
-      table
-        caption
-          h2 Winter 2026 Offerings
+  if !invalid_student && offerings.length > 0
+    table
+      caption
+        h2 Winter 2026 Offerings
+      tr
+        each col in Object.keys(offerings[0])
+          th= col
+        th Add/Drop Course
+      each row in Object.values(offerings)
         tr
-          each col in Object.keys(offerings[0])
-            th= col
-          th Add/Drop Course
-        each row in Object.values(offerings)
-          tr
-            each val in row
-              case val
-                when null
-                  td #[em TBD]
-                when 0
-                  td No
-                  td.center-cell
-                    form(action="",method="get")
-                      input(type="hidden",name="action",value="add_course")
-                      input(type="hidden",name="ID",value=`${formdata.ID}`)
-                      input(type="hidden",name="role",value=`${formdata.role}`)
-                      input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
-                      input(type="submit",value="Add")
-                when 1
-                  td Yes
-                  td.center-cell
-                    form(action="",method="get")
-                      input(type="hidden",name="action",value="drop_course")
-                      input(type="hidden",name="ID",value=`${formdata.ID}`)
-                      input(type="hidden",name="role",value=`${formdata.role}`)
-                      input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
-                      input(type="submit",value="Drop")
-                default
-                  td= val
-  else
+          each val in row
+            case val
+              when null
+                td #[em TBD]
+              when 0
+                td No
+                td.center-cell
+                  form(action="",method="get")
+                    input(type="hidden",name="action",value="add_course")
+                    input(type="hidden",name="ID",value=`${formdata.ID}`)
+                    input(type="hidden",name="role",value=`${formdata.role}`)
+                    input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
+                    input(type="submit",value="Add")
+              when 1
+                td Yes
+                td.center-cell
+                  form(action="",method="get")
+                    input(type="hidden",name="action",value="drop_course")
+                    input(type="hidden",name="ID",value=`${formdata.ID}`)
+                    input(type="hidden",name="role",value=`${formdata.role}`)
+                    input(type="hidden",name="offerNo",value=`${row['OfferNo']}`)
+                    input(type="submit",value="Drop")
+              default
+                td= val
+  else if offerings.length < 0
     p No courses found for Winter 2026.
+  else
+    p Please return home and enter a valid student ID.
