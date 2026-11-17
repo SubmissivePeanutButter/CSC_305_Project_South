@@ -31,7 +31,7 @@ block content
             // Select faculty member [OPTIONAL]
             td
               select(name="instructor",required)
-                option(value="") Select
+                option(value="",selected,disabled) Select a Faculty
                 each instructor in instructors
                   option(value=`${instructor.FacSSN}`)= `${instructor.FacFirstName} ${instructor.FacLastName}`
             // Select offering location [OPTIONAL]
@@ -43,7 +43,7 @@ block content
             // Select offering days [OPTIONAL]
             td
               select.textbox(name="offDays",required)
-                option(value="")
+                option(value="",selected,disabled)
                 option(value="MW") MW
                 option(value="TTH") TTH
             // Form submission

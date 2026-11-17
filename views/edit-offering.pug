@@ -30,12 +30,8 @@ block content
             input(type="time",name="offTime",value=`${offering.OffTime}`,step=1,required)
           // Offering faculty [EDITABLE]
           td
-            // An issue with this approach is that, if no faculty is set for a
-            // course, it automatically fills in the first possible value from the
-            // list, which is Cristopher Colan. However, new-offering is currently
-            // set up to where a faculty member MUST be selected, so I don't think
-            // this would be a major problem in the long run.
             select(name="instructor",required)
+              option(selected,disabled)
               each instructor in instructors
                 if instructor.FacSSN != offering.FacSSN
                   option(value=`${instructor.FacSSN}`)= `${instructor.FacFirstName} ${instructor.FacLastName}`
@@ -44,12 +40,17 @@ block content
           // Offering days [EDITABLE]
           td
             select.textbox(name="offDays",required)
-              if offering.OffDays == 'MW'
-                option(value="MW",selected) MW
-                option(value="TTH") TTH
-              else
-                option(value="MW") MW
-                option(value="TTH",selected) TTH
+              option(selected,disabled)
+              case offering.OffDays
+                when "MW"
+                  option(value="MW",selected) MW
+                  option(value="TTH") TTH
+                when "TTH"
+                  option(value="MW") MW
+                  option(value="TTH",selected) TTH
+                default
+                  option(value="MW") MW
+                  option(value="TTH",selected) TTH
           // Submit changes
           td.center-cell
             form(action="/",method="get")
