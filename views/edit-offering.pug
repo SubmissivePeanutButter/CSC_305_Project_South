@@ -1,8 +1,6 @@
 extends layout
 
 block content
-  // Currently, this does not write to the database. Clicking 'Submit" will only
-  // result in an error.
   h1 Edit Offering
 
   input(type="button",value="Cancel",onclick="history.back()")
@@ -26,10 +24,10 @@ block content
           td= offering.CrsDesc
           // Offering location [EDITABLE]
           td
-            input.textbox(type="text",name="offLocation",value=`${offering.OffLocation}`,required)
+            input.textbox(name="offLocation",type="text",value=`${offering.OffLocation}`,required)
           // Offering time [EDITABLE]
           td
-            input(type="time",value=`${offering.OffTime}`,step=1,required)
+            input(name="offTime",type="time",value=`${offering.OffTime}`,step=1,required)
           // Offering faculty [EDITABLE]
           td
             // An issue with this approach is that, if no faculty is set for a
@@ -58,7 +56,6 @@ block content
               input(type="hidden",name="action",value="edit_offering")
               input(type="hidden",name="ID",value=`${formdata.ID}`)
               input(type="hidden",name="role",value=`${formdata.role}`)
-              input(type="hidden",name="offerNo",value=`${Object.keys(offering)['OfferNo']}`)
               input(type="submit",value="Submit")
   else
     p #[em No courses could be found.]
