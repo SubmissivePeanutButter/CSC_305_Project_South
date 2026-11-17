@@ -18,7 +18,7 @@ block content
         div(class="form_control")
           label(class="left",for="role") Role:
           select.dropdown(name="role",id="role",onchange="checkRole(this.value)",required)
-            option(value="") Please select a role
+            option(value="",selected,disabled) Please select a role
             option(value="Student") Student
             option(value="Faculty") Faculty
             option(value="Registrar") Registrar
