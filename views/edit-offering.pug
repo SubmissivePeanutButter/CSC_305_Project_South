@@ -3,7 +3,10 @@ extends layout
 block content
   h1 Edit Offering
 
-  input(type="button",value="Cancel",onclick="history.back()")
+  form(action="/",method="get")
+    input(type="hidden",name="ID",value=`${formdata.ID}`)
+    input(type="hidden",name="role",value=`${formdata.role}`)
+    input(type="submit",value="Cancel")
   if offering
     table
       caption
