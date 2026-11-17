@@ -19,15 +19,15 @@ block content
         form(action="/",method="get")
           // Offering name, course number, and course name
           td= offering.OfferNo
-            input(name="offerNo",type="hidden",value=`${offering.OfferNo}`)
+            input(type="hidden",name="offerNo",value=`${offering.OfferNo}`)
           td= offering.CourseNo
           td= offering.CrsDesc
           // Offering location [EDITABLE]
           td
-            input.textbox(name="offLocation",type="text",value=`${offering.OffLocation}`,required)
+            input.textbox(type="text",name="offLocation",value=`${offering.OffLocation}`,required)
           // Offering time [EDITABLE]
           td
-            input(name="offTime",type="time",value=`${offering.OffTime}`,step=1,required)
+            input(type="time",name="offTime",value=`${offering.OffTime}`,step=1,required)
           // Offering faculty [EDITABLE]
           td
             // An issue with this approach is that, if no faculty is set for a

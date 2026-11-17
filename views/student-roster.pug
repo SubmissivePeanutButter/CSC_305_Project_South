@@ -2,35 +2,35 @@ extends layout
 
 block content
   h1= title
+  p= course
 
   form(action="/",method="get")
     input(type="hidden",name="ID",value=`${formdata.ID}`)
     input(type="hidden",name="role",value=`${formdata.role}`)
     input(type="hidden",name="offerNo",value=`${offering}`)
     input(type="submit",value="Back")
-  if students
-    if students.length > 0
-      table
-        caption
-          h2 Student Roster
+  if students.length > 0
+    table
+      caption
+        h2 Student Roster
+      tr
+        each col in Object.keys(students[0])
+          th= col
+        th Edit Grade
+      each row in Object.values(students)
         tr
-          each col in Object.keys(students[0])
-            th= col
-          th Edit Grade
-        each row in Object.values(students)
-          tr
-            each val in row
-              if val === null
-                td #[em TBD]
-              else
-                td= val
-            td.center-cell
-              form(action="/submit",method="get")
-                input(type="hidden",name="action",value="edit_grade")
-                input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.01",min="0",max="4.0")
-                input(type="hidden",name="ID",value=`${row['StdSSN']}`)
-                input(type="hidden",name="role",value=`${formdata.role}`)
-                input(type="hidden",name="offerNo",value=`${offering}`)
-                input(type="submit",value="Edit")
+          each val in row
+            if val === null
+              td #[em TBD]
+            else
+              td= val
+          td.center-cell
+            form(action="/submit",method="get")
+              input(type="hidden",name="action",value="edit_grade")
+              input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.01",min="0",max="4.0")
+              input(type="hidden",name="ID",value=`${row['StdSSN']}`)
+              input(type="hidden",name="role",value=`${formdata.role}`)
+              input(type="hidden",name="offerNo",value=`${offering}`)
+              input(type="submit",value="Edit")
   else
     p No courses found for this term.

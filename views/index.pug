@@ -38,17 +38,3 @@ block content
           id_field.readOnly = false;
           return;
         }
-
-  if formdata.role
-    table
-      caption
-        h2 Form data
-      tr
-        th Key
-        th Value
-      each value, key in formdata
-        tr
-          td= key
-          td= value
-  else
-    h2 No form data
