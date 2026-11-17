@@ -1,12 +1,9 @@
 extends layout
 
 block content
-  // TODO: Display offerings scheduled for Winter 2026; allow new offerings to be
-  //    added, as well as for currently scheduled offerings to be canceled
   h1= title
-  p #[em [WORK IN PROGRESS]]
+  p= course
 
-  //- a(href="/") Home
   form(action="/",method="get")
     input(type="hidden",name="ID",value=`${formdata.ID}`)
     input(type="hidden",name="role",value=`${formdata.role}`)
