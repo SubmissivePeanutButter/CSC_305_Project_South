@@ -146,7 +146,9 @@ function queryStudent(formdata, req, res, next) {
                 + " Faculty.FacFirstName, Faculty.FacLastName, Enrollment.EnrGrade"
                 + " FROM (Offering INNER JOIN Enrollment ON Offering.OfferNO ="
                 + " Enrollment.OfferNO) LEFT JOIN Faculty ON Offering.FacSSN ="
-                + " Faculty.FacSSN WHERE Enrollment.StdSSN = $SSN;";
+                + " Faculty.FacSSN WHERE Enrollment.StdSSN = $SSN ORDER BY OffYear"
+                + " DESC, CASE OffTerm WHEN 'SPRING' THEN 1 WHEN 'WINTER' THEN 2"
+                + " WHEN 'FALL' THEN 3 ELSE 4 END, CourseNo ASC;";
     req.app.locals.past_enrollments = db.prepare(sql).all({ $SSN: formdata.ID });
     console.info("Found", req.app.locals.past_enrollments.length, "for selected student");
     // Query all of the offerings for the latest term (Winter 2026)
@@ -236,7 +238,9 @@ function queryInstructorCourses(formdata, req, res, next) {
     const db = req.app.locals.db;
     const sql = "SELECT OfferNo, CourseNo, OffTerm, OffYear FROM Offering LEFT JOIN"
                 + " Faculty ON Offering.FacSSN = Faculty.FacSSN WHERE"
-                + " Offering.FacSSN = $SSN;";
+                + " Offering.FacSSN = $SSN ORDER BY OffYear DESC, CASE OffTerm WHEN"
+                + " 'SPRING' THEN 1 WHEN 'WINTER' THEN 2 WHEN 'FALL' THEN 3 ELSE 4"
+                + " END, OfferNo ASC;";
     req.app.locals.courses = db.prepare(sql).all({ $SSN: formdata.ID });
     console.info(req.app.locals.courses.length, "courses found for this instructor", );
     queryFacultyName(formdata, req, res, next);
@@ -421,10 +425,14 @@ function addOffering(formdata, req) {
                                           $facSSN: formdata.instructor || null, // No instructor yet
                                           $offdays: formdata.offDays });
     console.info(`Adding offering adding ${changes.changes} row(s)`);
-    req.app.locals.status = `Success: Added offering [${formdata.offerNo}].`;
+    req.app.locals.status = `[Success] Created new offering ${formdata.offerNo}.`;
   }
   else {
-    throw new Error(`400 Offering number ${formdata.offerNo} is already in use. Please go back and try a different offering number.`);
+    req.app.locals.status = `[WARNING] Offering number ${formdata.offerNo} is`
+                            + " already in use, either for the upcoming semester or"
+                            + " for a previous semester. Please choose a different"
+                            + " offering number and try again.";
+    // throw new Error(`400 Offering number ${formdata.offerNo} is already in use. Please go back and try a different offering number.`);
   }
 }
 
@@ -447,7 +455,7 @@ function editOffering(formdata, req) {
   if (changes.changes === 0) {
     throw new Error(`400 Offering ${formdata.offerNo} is not scheduled for Winter 2026`);
   }
-  req.app.locals.status = `Success: Updated offering [${formdata.offerNo}].`;
+  req.app.locals.status = `[Success] Updated offering ${formdata.offerNo}.`;
 }
 
 /* END OF SQL QUERIES & ACTIONS */
