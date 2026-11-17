@@ -20,9 +20,8 @@ router.get('/new-offering', (req, res) => {
 router.get('/edit-offering', (req, res, next) => {
   try {
     req.app.locals.status = '';
-    const edit = queryOfferingToEdit(req.query, req);
-    res.render('edit-offering', { offering: edit.offering,
-                                  instructors: edit.instructors });
+    queryOfferingToEdit(req.query, req);
+    res.render('edit-offering');
   } catch (err) {
     renderErrorPage(err, req, res, next);
   }
@@ -355,6 +354,31 @@ function queryFacultyList(formdata, req, res, next) {
   }
 }
 
+// Loads the offering (and the instructor list) shown on the edit-offering page
+function queryOfferingToEdit(formdata, req) {
+  const db = req.app.locals.db;
+  if (!db) {
+    throw new Error("500 Offering query failed to find database");
+  }
+  const sql = "SELECT OfferNo, Offering.CourseNo, CrsDesc, OffLocation, OffTime,"
+              + " FacSSN, OffDays FROM Offering INNER JOIN Course ON"
+              + " Offering.CourseNo = Course.CourseNo WHERE OfferNo = $offerno AND"
+              + " OffTerm = 'WINTER' AND OffYear = 2026;";
+  const offering = db.prepare(sql).get({ $offerno: formdata.offerNo });
+  console.info("Grabbing offering data for", formdata.offerNo);
+  if (!offering) {
+    throw new Error(`400 Offering ${formdata.offerNo} is not scheduled for Winter 2026`);
+  }
+  // The time input needs HH:MM:SS, but some times are stored as H:MM:SS
+  if (offering.OffTime) {
+    offering.OffTime = String(offering.OffTime).padStart(8, "0");
+  }
+  const instructors = db.prepare("SELECT FacSSN, FacFirstName, FacLastName FROM"
+                                 + " Faculty ORDER BY FacLastName, FacFirstName;").all();
+  req.app.locals.offering = offering;
+  req.app.locals.instructors = instructors;
+}
+
 function cancelOffering(formdata, req) {
   // IMPORTANT: After testing, delete 'univdb', make a copy of 'univdb_copy',
   // then rename that copy to 'univdb'
@@ -424,29 +448,6 @@ function editOffering(formdata, req) {
     throw new Error(`400 Offering ${formdata.offerNo} is not scheduled for Winter 2026`);
   }
   req.app.locals.status = `Success: Updated offering [${formdata.offerNo}].`;
-}
-
-// Loads the offering (and the instructor list) shown on the edit-offering page
-function queryOfferingToEdit(formdata, req) {
-  const db = req.app.locals.db;
-  if (!db) {
-    throw new Error("500 Offering query failed to find database");
-  }
-  const sql = "SELECT OfferNo, Offering.CourseNo, CrsDesc, OffLocation, OffTime,"
-              + " FacSSN, OffDays FROM Offering INNER JOIN Course ON"
-              + " Offering.CourseNo = Course.CourseNo WHERE OfferNo = $offerno AND"
-              + " OffTerm = 'WINTER' AND OffYear = 2026;";
-  const offering = db.prepare(sql).get({ $offerno: formdata.offerNo });
-  if (!offering) {
-    throw new Error(`400 Offering ${formdata.offerNo} is not scheduled for Winter 2026`);
-  }
-  // The time input needs HH:MM:SS, but some times are stored as H:MM:SS
-  if (offering.OffTime) {
-    offering.OffTime = String(offering.OffTime).padStart(8, "0");
-  }
-  const instructors = db.prepare("SELECT FacSSN, FacFirstName, FacLastName FROM"
-                                 + " Faculty ORDER BY FacLastName, FacFirstName;").all();
-  return { offering, instructors };
 }
 
 /* END OF SQL QUERIES & ACTIONS */

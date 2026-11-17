@@ -1,35 +1,64 @@
 extends layout
 
 block content
-  // Currently, no data is being fed to edit-offering, which is why all of the
-  // values will show up as 'N/A'. Also, I used a table simply because I copied
-  // much of the code from the Registrar page.
+  // Currently, this does not write to the database. Clicking 'Submit" will only
+  // result in an error.
   h1 Edit Offering
 
   input(type="button",value="Cancel",onclick="history.back()")
-  if offerings.length > 0
+  if offering
     table
       caption
         h2 Selected Offering
       tr
-        each col in Object.keys(offerings[0])
-          th= col
-        th Submit
-      tr
-        each val in Object.keys(offerings[0])
-          if val === null
-            td #[em TBD]
+        each col in Object.keys(offering)
+          if col != 'FacSSN'
+            th= col
           else
-            td N/A
-        td.center-cell
-          //- Offering editing still needs to be implemented, meaning that 
-          //- these input tags are current placeholders.
-          form(action="/",method="get")
-            input(type="hidden",name="action",value="edit_offering")
-            input(type="hidden",name="ID",value=`${formdata.ID}`)
-            input(type="hidden",name="role",value=`${formdata.role}`)
-            // Line 30's value is a placeholder, so please change it at some point
-            input(type="hidden",name="offerNo",value=`${Object.keys(offerings[0])['OfferNo']}`)
-            input(type="submit",value="Submit")
+            th Faculty
+        th Submit Changes
+      tr
+        form(action="/",method="get")
+          // Offering name, course number, and course name
+          td= offering.OfferNo
+            input(name="offerNo",type="hidden",value=`${offering.OfferNo}`)
+          td= offering.CourseNo
+          td= offering.CrsDesc
+          // Offering location [EDITABLE]
+          td
+            input.textbox(type="text",name="offLocation",value=`${offering.OffLocation}`,required)
+          // Offering time [EDITABLE]
+          td
+            input(type="time",value=`${offering.OffTime}`,step=1,required)
+          // Offering faculty [EDITABLE]
+          td
+            // An issue with this approach is that, if no faculty is set for a
+            // course, it automatically fills in the first possible value from the
+            // list, which is Cristopher Colan. However, new-offering is currently
+            // set up to where a faculty member MUST be selected, so I don't think
+            // this would be a major problem in the long run.
+            select(name="instructor",required)
+              each instructor in instructors
+                if instructor.FacSSN != offering.FacSSN
+                  option(value=`${instructor.FacSSN}`)= `${instructor.FacFirstName} ${instructor.FacLastName}`
+                else
+                  option(value=`${instructor.FacSSN}`,selected)= `${instructor.FacFirstName} ${instructor.FacLastName}`
+          // Offering days [EDITABLE]
+          td
+            select.textbox(name="offDays",required)
+              if offering.OffDays == 'MW'
+                option(value="MW",selected) MW
+                option(value="TTH") TTH
+              else
+                option(value="MW") MW
+                option(value="TTH",selected) TTH
+          // Submit changes
+          td.center-cell
+            form(action="/",method="get")
+              input(type="hidden",name="action",value="edit_offering")
+              input(type="hidden",name="ID",value=`${formdata.ID}`)
+              input(type="hidden",name="role",value=`${formdata.role}`)
+              input(type="hidden",name="offerNo",value=`${Object.keys(offering)['OfferNo']}`)
+              input(type="submit",value="Submit")
   else
     p #[em No courses could be found.]
