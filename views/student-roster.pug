@@ -28,9 +28,9 @@ block content
                 td.center-cell
                   input(type="hidden",name="action",value="edit_grade")
                   if stdnt[key] === null
-                    input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.01",min="0",max="4.0")
+                    input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.1",min="0",max="4.0")
                   else 
-                    input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.01",min="0",max="4.0",value=`${stdnt[key]}`)
+                    input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.1",min="0",max="4.0",value=`${stdnt[key]}`)
                   input(type="hidden",name="ID",value=`${stdnt['StdSSN']}`)
                   input(type="hidden",name="role",value=`${formdata.role}`)
                   input(type="hidden",name="offerNo",value=`${offering}`) 

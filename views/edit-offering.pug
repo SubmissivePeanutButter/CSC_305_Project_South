@@ -30,7 +30,7 @@ block content
             input.textbox(type="text",name="offLocation",value=`${offering.OffLocation}`,required)
           // Offering time [EDITABLE]
           td
-            input(type="time",name="offTime",value=`${offering.OffTime}`,step=1,required)
+            input(type="time",name="offTime",value=`${offering.OffTime}`,step=60,required)
           // Offering faculty [EDITABLE]
           td
             select(name="instructor",required)
