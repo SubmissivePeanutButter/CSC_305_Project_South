@@ -417,6 +417,7 @@ function addOffering(formdata, req) {
   // then rename that copy to 'univdb'
   console.info("Trying to add: [Offering]", formdata.offerNo, "[Course]", formdata.courseNo);
   const db = req.app.locals.db;
+  const offTime = `${formdata.offTime}:00`;
   let sql = "SELECT OfferNo FROM Offering WHERE OfferNo = $offerno;";
   // Check whether the offering number is already in use
   const check_offer = db.prepare(sql).all({ $offerno: formdata.offerNo });
@@ -429,7 +430,7 @@ function addOffering(formdata, req) {
                                           $offterm: formdata.offTerm,
                                           $offyear: formdata.offYear,
                                           $offlocation: formdata.offLocation,
-                                          $offtime: formdata.offTime,
+                                          $offtime: offTime,
                                           $facSSN: formdata.instructor || null, // No instructor yet
                                           $offdays: formdata.offDays });
     console.info(`Adding offering adding ${changes.changes} row(s)`);
@@ -450,6 +451,7 @@ function editOffering(formdata, req) {
   // then rename that copy to 'univdb'
   console.info("Trying to edit: [Offering]", formdata.offerNo);
   const db = req.app.locals.db;
+  const offTime = `${formdata.offTime}:00`;
   // The offering number stays the same; the registrar changes the instructor,
   // location, time and days of an offering scheduled for Winter 2026
   const sql = "UPDATE Offering SET FacSSN=$facSSN, OffLocation=$offlocation,"
@@ -458,7 +460,7 @@ function editOffering(formdata, req) {
   const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
                                         $facSSN: formdata.instructor || null, // No instructor yet
                                         $offlocation: formdata.offLocation,
-                                        $offtime: formdata.offTime,
+                                        $offtime: offTime,
                                         $offdays: formdata.offDays });
   console.info(`Editing offering changing ${changes.changes} row(s)`);
   if (changes.changes === 0) {
