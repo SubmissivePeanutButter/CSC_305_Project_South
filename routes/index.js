@@ -451,7 +451,11 @@ function editOffering(formdata, req) {
   // then rename that copy to 'univdb'
   console.info("Trying to edit: [Offering]", formdata.offerNo);
   const db = req.app.locals.db;
-  const offTime = `${formdata.offTime}:00`;
+  const colonCount = formdata.offTime.split(":").length - 1;
+  let offTime = `${formdata.offTime}`;
+  if (colonCount === 1) {
+    offTime = `${formdata.offTime}:00`;
+  }
   // The offering number stays the same; the registrar changes the instructor,
   // location, time and days of an offering scheduled for Winter 2026
   const sql = "UPDATE Offering SET FacSSN=$facSSN, OffLocation=$offlocation,"
