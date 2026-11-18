@@ -213,6 +213,7 @@ function addCourse(formdata, req) {
               + " $SSN);";
   const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
                                         $SSN: formdata.ID });
+  req.app.locals.status = `Success: Enrolled in course offering [${formdata.offerNo}].`;
   console.info(`Enrollment changed ${changes.changes} row(s)`);
 }
 
@@ -228,6 +229,7 @@ function dropCourse(formdata, req) {
               + " 'WINTER' AND OffYear = 2026);";
   const changes = db.prepare(sql).run({ $offerno: formdata.offerNo,
                                         $SSN: formdata.ID });
+  req.app.locals.status = `Success: Dropped course offering [${formdata.offerNo}].`;
   console.info(`Enrollment changed ${changes.changes} row(s)`);
 }
 
@@ -319,7 +321,7 @@ function editGrade(formdata, req) {
   if (changes.changes === 0) {
     throw new Error(`400 Student ${formdata.ID} is not enrolled in offering ${formdata.offerNo}`);
   }
-  req.app.locals.status = `Success: Saved grade ${grade} for student ${formdata.ID}.`;
+  req.app.locals.status = `Success: Saved new grade [${grade}] for student [${formdata.firstName} ${formdata.lastName}].`;
 }
 
 //- REGISTRAR QUERIES & ACTIONS
@@ -405,7 +407,6 @@ function cancelOffering(formdata, req) {
   console.info(`Canceling offering ${formdata.offerNo} canceling ${changes.changes} offerings`);
   if (changes.changes === 0) {
     // e.g. the page was refreshed after the offering was already canceled
-    req.app.locals.status = `WARNING: Offering [${formdata.offerNo}] is not scheduled for Winter 2026, so nothing was canceled.`;
     return;
   }
   req.app.locals.status = `Success: Canceled offering [${formdata.offerNo}].`;
@@ -437,9 +438,10 @@ function addOffering(formdata, req) {
   else {
     req.app.locals.status = `WARNING: Offering number [${formdata.offerNo}] is`
                             + " already in use, either for the upcoming semester or"
-                            + " for a previous semester. Please choose a different"
-                            + " offering number and try again.";
-    // throw new Error(`400 Offering number ${formdata.offerNo} is already in use. Please go back and try a different offering number.`);
+                            + " for a previous semester. If you have attempted to"
+                            + " refresh the page, please ignore this message."
+                            + " Otherwise, please choose a different offering number"
+                            + " and try again.";
   }
 }
 

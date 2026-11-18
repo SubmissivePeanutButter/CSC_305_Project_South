@@ -2,7 +2,8 @@ extends layout
 
 block content
   h1= title
-  p= course
+  h4= course
+  p= status
 
   form(action="/",method="get")
     input(type="hidden",name="ID",value=`${formdata.ID}`)
@@ -20,8 +21,6 @@ block content
           th Edit Grade
         each stdnt in Object.values(students)
           tr
-          //- Grade editing has not been implented yet, meaning that 
-          //- this input tag is current a placeholder.
           form(action="/submit",method="get")
             each key in Object.keys(stdnt)
               if key == "EnrGrade"
@@ -33,7 +32,9 @@ block content
                     input.textbox(type="number",name="new_grade",placeholder="0.0–4.0",required,step="0.1",min="0",max="4.0",value=`${stdnt[key]}`)
                   input(type="hidden",name="ID",value=`${stdnt['StdSSN']}`)
                   input(type="hidden",name="role",value=`${formdata.role}`)
-                  input(type="hidden",name="offerNo",value=`${offering}`) 
+                  input(type="hidden",name="offerNo",value=`${offering}`)
+                  input(type="hidden",name="firstName",value=`${stdnt['StdFirstName']}`)
+                  input(type="hidden",name="lastName",value=`${stdnt['StdLastName']}`)
               else if stdnt[key] === null
                 td #[em TBD]
               else
